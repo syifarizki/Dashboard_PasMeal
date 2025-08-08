@@ -78,7 +78,7 @@ const ForgotPassPage = () => {
             <InputPhone
               label="Nomor WhatsApp"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
               placeholder="08xxxxxxxxxx"
             />
 

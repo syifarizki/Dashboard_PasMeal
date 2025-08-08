@@ -11,7 +11,7 @@ import InputEmail from "../../components/Input/InputEmail";
 const RegisterPage = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [name, setName] = useState("");
-  const [noPhone, setNoPhone] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,7 +22,7 @@ const RegisterPage = () => {
     const newErrors = {};
 
     if (!name.trim()) newErrors.name = "Nama wajib diisi.";
-    if (!noPhone.trim()) newErrors.noPhone = "Nomor WhatsApp wajib diisi.";
+    if (!phone.trim()) newErrors.noPhone = "Nomor WhatsApp wajib diisi.";
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) newErrors.email = "Email wajib diisi.";
@@ -100,8 +100,8 @@ const RegisterPage = () => {
             />
             <InputPhone
               label="Nomor WhatsApp"
-              value={noPhone}
-              onChange={setNoPhone}
+              value={phone}
+              onChange={setPhone}
               placeholder="Nomor WhatsApp"
               errorMessage={errors.noPhone}
             />
