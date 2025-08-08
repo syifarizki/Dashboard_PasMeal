@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
 import PrimaryButton from "../../components/Button/PrimaryButton";
@@ -158,17 +158,14 @@ const RegisterPage = () => {
           {/* Link ke login */}
           <div className="mt-2 text-sm text-center text-gray-500">
             Anda sudah memiliki akun?{" "}
-            <a href="/LoginPage" className="text-orange-500 font-medium">
+            <Link to="/LoginPage" className="text-orange-500 font-medium">
               Masuk
-            </a>
+            </Link>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default RegisterPage;
-
-
-

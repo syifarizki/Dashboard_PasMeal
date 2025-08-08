@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
 import PrimaryButton from "../../components/Button/PrimaryButton";
@@ -109,9 +109,12 @@ const LoginPage = () => {
                 />
                 Ingatkan saya
               </label>
-              <a href="/ForgotPassPage" className="text-orange-500 font-medium">
+              <Link
+                to="/ForgotPassPage"
+                className="text-orange-500 font-medium"
+              >
                 Lupa Kata Sandi?
-              </a>
+              </Link>
             </div>
 
             <PrimaryButton
@@ -125,9 +128,9 @@ const LoginPage = () => {
           {/* Register */}
           <div className="mt-4 text-sm text-center text-gray-500">
             Tidak memiliki akun?{" "}
-            <a href="RegisterPage" className="text-orange-500 font-medium">
+            <Link to="/RegisterPage" className="text-orange-500 font-medium">
               Daftar Disini
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -140,6 +143,6 @@ const LoginPage = () => {
       />
     </div>
   );
-}
+};
 
 export default LoginPage;
