@@ -75,7 +75,7 @@ const NewPassPage = () => {
           {/* Back button on small screen */}
           <div className="absolute top-6 left-6 flex items-center gap-3 lg:hidden">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/ForgotPassPage")}
               className="p-2 rounded-full bg-primary text-black font-extrabold hover:bg-orange-600 transition"
               aria-label="Kembali"
             >

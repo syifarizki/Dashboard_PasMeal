@@ -7,21 +7,23 @@ import InputText from "../../components/Input/InputText";
 import InputPassword from "../../components/Input/InputPassword";
 import InputPhone from "../../components/Input/InputPhone";
 import InputEmail from "../../components/Input/InputEmail";
+import { AuthApi } from "../../services/Auth";
 
 const RegisterPage = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [name, setName] = useState("");
+  const [nama, setNama] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
 
-    if (!name.trim()) newErrors.name = "Nama wajib diisi.";
+    if (!nama.trim()) newErrors.nama = "Nama wajib diisi.";
     if (!phone.trim()) newErrors.noPhone = "Nomor WhatsApp wajib diisi.";
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,11 +47,29 @@ const RegisterPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      console.log("Registrasi berhasil");
-      navigate("/OtpPage");
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      const res = await AuthApi.register({
+        nama,
+        no_hp: phone,
+        email,
+        password,
+        confirmPassword,
+      });
+
+      console.log("Register sukses:", res);
+      navigate("/OtpPage", { state: { no_hp: phone } });
+    } catch (error) {
+      console.error("Register gagal:", error);
+      setErrors({
+        api: error.response?.data?.message || "Terjadi kesalahan pada server",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,14 +109,19 @@ const RegisterPage = () => {
             </h5>
           </div>
 
+          {/* Error API */}
+          {errors.api && (
+            <p className="text-red-500 text-sm mb-2">{errors.api}</p>
+          )}
+
           {/* Form */}
           <form className="space-y-2" onSubmit={handleSubmit}>
             <InputText
               label="Nama"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
               placeholder="Nama"
-              errorMessage={errors.name}
+              errorMessage={errors.nama}
             />
             <InputPhone
               label="Nomor WhatsApp"
@@ -105,7 +130,6 @@ const RegisterPage = () => {
               placeholder="Nomor WhatsApp"
               errorMessage={errors.noPhone}
             />
-
             <InputEmail
               label="Email"
               value={email}
@@ -113,7 +137,6 @@ const RegisterPage = () => {
               placeholder="Email"
               errorMessage={errors.email}
             />
-
             <InputPassword
               label="Kata Sandi"
               value={password}
@@ -121,7 +144,6 @@ const RegisterPage = () => {
               placeholder="Kata Sandi"
               errorMessage={errors.password}
             />
-
             <InputPassword
               label="Konfirmasi Kata Sandi"
               value={confirmPassword}
@@ -149,9 +171,10 @@ const RegisterPage = () => {
             </div>
 
             <PrimaryButton
-              text="Daftar"
-              onClick={handleSubmit}
+              text={loading ? "Memproses..." : "Daftar"}
               className="w-full"
+              disabled={loading}
+              type="submit"
             />
           </form>
 

@@ -1,17 +1,22 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
 import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputText from "../../components/Input/InputText";
 import Notification from "../../components/Popup/Notification";
-
+import { AuthApi } from "../../services/Auth";
 
 const OtpPage = () => {
-  const [otp, setOtp] = useState("");
+  const [kode_otp, setKodeOtp] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [alertData, setAlertData] = useState({});
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const no_hp = location.state?.no_hp || "";
+
   const showSuccessAlert = () => {
     setAlertData({
       iconImage: "/images/berhasil.png",
@@ -26,41 +31,48 @@ const OtpPage = () => {
     setShowAlert(true);
   };
 
-  const showErrorAlert = () => {
+  const showErrorAlert = (message) => {
     setAlertData({
       iconImage: "/images/gagal.png",
       title: "Gagal",
-      message: "Kode OTP yang Anda masukkan tidak valid. Silakan coba lagi.",
+      message:
+        message ||
+        "Kode OTP yang Anda masukkan tidak valid. Silakan coba lagi.",
       buttonText: "Oke",
     });
     setShowAlert(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (otp === "123456") {
+    if (!kode_otp) return;
+
+    try {
+      setLoading(true);
+      const res = await AuthApi.verifyOtp({ no_hp, kode_otp });
+      console.log("OTP sukses:", res);
       showSuccessAlert();
-    } else {
-      showErrorAlert();
+    } catch (error) {
+      console.error("OTP gagal:", error);
+      showErrorAlert(error.response?.data?.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-white grid grid-cols-1 lg:grid-cols-2">
-      {/* === Left Slider === */}
       <div className="hidden lg:flex justify-center items-center px-6 lg:px-12 text-center bg-gray-50">
         <div className="max-w-md w-full">
           <OnboardingSlider />
         </div>
       </div>
 
-      {/* === Right Otp Form === */}
-      <div className="relative flex items-start pt-40 lg:pt-50  justify-center px-6 lg:px-12 bg-white shadow-xl shadow-black">
+      <div className="relative flex items-start pt-40 lg:pt-50 justify-center px-6 lg:px-12 bg-white shadow-xl shadow-black">
         <div className="w-full max-w-sm">
-          {/* Back Button and Title */}
           <div className="absolute top-6 left-6 flex items-center gap-3 lg:hidden">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/RegisterPage")}
               className="p-2 rounded-full bg-primary text-black font-extrabold hover:bg-orange-600 transition"
               aria-label="Kembali"
             >
@@ -69,8 +81,7 @@ const OtpPage = () => {
             <h2 className="text-2xl font-bold text-black">Daftar Akun</h2>
           </div>
 
-          {/* Logo */}
-          <div className="flex flex-col -mt-20 mb-8 ">
+          <div className="flex flex-col -mt-20 mb-8">
             <img
               src="/images/pasmeal.png"
               alt="PasMeal"
@@ -81,32 +92,38 @@ const OtpPage = () => {
             </h5>
           </div>
 
-          {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputText
               type="text"
               label="Kode OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              value={kode_otp}
+              onChange={(e) => setKodeOtp(e.target.value)}
               placeholder="Kode OTP"
             />
             <div className="flex justify-between items-center text-sm">
               <p className="flex items-center gap-2">Belum mendapatkan kode?</p>
-              <a href="#" className="text-orange-500 font-medium">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("Fitur kirim ulang OTP belum tersedia.");
+                }}
+                className="text-orange-500 font-medium"
+              >
                 Kirim ulang
-              </a>
+              </button>
             </div>
 
             <PrimaryButton
-              text="Verifikasi"
-              onClick={handleSubmit}
+              type="submit"
+              text={loading ? "Memverifikasi..." : "Verifikasi"}
               className="w-full"
-              disabled={!otp}
+              disabled={!kode_otp || loading}
             />
           </form>
         </div>
       </div>
-      {/* Alert Modal */}
+
       <Notification
         show={showAlert}
         onClose={() => setShowAlert(false)}
@@ -114,6 +131,6 @@ const OtpPage = () => {
       />
     </div>
   );
-}
+};
 
 export default OtpPage;

@@ -6,6 +6,7 @@ import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputText from "../../components/Input/InputText";
 import InputPassword from "../../components/Input/InputPassword";
 import Notification from "../../components/Popup/Notification";
+import { AuthApi } from "../../services/Auth"; 
 
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,22 +30,42 @@ const LoginPage = () => {
     setShowAlert(true);
   };
 
-  const showErrorAlert = () => {
+  const showErrorAlert = (message = "Nama atau kata sandi salah") => {
     setAlertData({
       iconImage: "/images/gagal.png",
       title: "Gagal",
-      message: "Nama atau kata sandi salah",
+      message: message,
       buttonText: "Coba Lagi",
     });
     setShowAlert(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name === "syifa" && password === "12345678") {
-      showSuccessAlert();
-    } else {
-      showErrorAlert();
+    try {
+      const res = await AuthApi.login(name, password);
+
+      // misalnya API balikin token dan user data
+      if (res?.token) {
+        // simpan token ke localStorage
+        localStorage.setItem("token", res.token);
+
+        // kalau rememberMe aktif, bisa simpan name/password juga
+        if (rememberMe) {
+          localStorage.setItem("rememberName", name);
+        } else {
+          localStorage.removeItem("rememberName");
+        }
+
+        showSuccessAlert();
+      } else {
+        showErrorAlert(res?.message || "Login gagal");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      const errMsg =
+        error?.response?.data?.message || "Terjadi kesalahan pada server";
+      showErrorAlert(errMsg);
     }
   };
 
@@ -135,7 +156,7 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Popup Alert*/}
+      {/* Popup Alert */}
       <Notification
         show={showAlert}
         onClose={() => setShowAlert(false)}
