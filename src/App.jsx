@@ -46,7 +46,7 @@ function App() {
           <Route path="OtpPage" element={<OtpPage />} />
           <Route path="RegisterTokoPage" element={<RegisterTokoPage />} />
           <Route path="ForgotPassPage" element={<ForgotPassPage />} />
-          <Route path="NewPassPage" element={<NewPassPage />} />
+          <Route path="NewPassPage/:token" element={<NewPassPage />} />
         </Route>
         <Route path="/" element={<DashboardLayout />}>
           <Route path="DashboardPage" element={<DashboardPage />} />
