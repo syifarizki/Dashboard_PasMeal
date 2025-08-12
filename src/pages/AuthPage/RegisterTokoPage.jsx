@@ -31,7 +31,7 @@ const RegisterKiosPage = () => {
 
       await AuthApi.registerKios({
         namaToko,
-        namaRekening,
+        namaBank: namaRekening,
         noRekening,
         token,
       });
@@ -110,8 +110,8 @@ const RegisterKiosPage = () => {
             />
 
             <PrimaryButton
+              type="submit"
               text={loading ? "Menyimpan..." : "Lanjut"}
-              onClick={handleSubmit}
               className="w-full mt-2"
               disabled={!namaToko || !namaRekening || !noRekening || loading}
             />

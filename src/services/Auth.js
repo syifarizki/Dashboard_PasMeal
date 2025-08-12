@@ -23,16 +23,16 @@ export const AuthApi = {
       no_hp,
       kode_otp,
     });
-    return res.data;
+    return res.data; // pastikan response ada token di sini
   },
 
-  registerKios: async ({ namaToko, namaRekening, noRekening, token }) => {
+  registerKios: async ({ namaToko, namaBank, noRekening, token }) => {
     const res = await axios.post(
       `${API_URL}/api/kios`,
       {
-        namaToko,
-        namaRekening,
-        noRekening,
+        nama_toko: namaToko,
+        nama_bank: namaBank,
+        no_rekening: noRekening,
       },
       {
         headers: {

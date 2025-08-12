@@ -25,7 +25,7 @@ const OtpPage = () => {
       buttonText: "Oke",
       buttonAction: () => {
         setShowAlert(false);
-        navigate("/RegisterTokoPage");
+        navigate("/RegisterKiosPage"); // sesuaikan route daftar kios
       },
     });
     setShowAlert(true);
@@ -45,16 +45,32 @@ const OtpPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!kode_otp) return;
+
+    if (!kode_otp) {
+      showErrorAlert("Kode OTP wajib diisi.");
+      return;
+    }
+    if (!no_hp) {
+      showErrorAlert("Nomor HP tidak ditemukan, silakan daftar ulang.");
+      return;
+    }
 
     try {
       setLoading(true);
       const res = await AuthApi.verifyOtp({ no_hp, kode_otp });
       console.log("OTP sukses:", res);
+
+      if (res.token) {
+        localStorage.setItem("token", res.token);
+      }
+
       showSuccessAlert();
     } catch (error) {
       console.error("OTP gagal:", error);
-      showErrorAlert(error.response?.data?.message);
+      showErrorAlert(
+        error.response?.data?.message ||
+          "Terjadi kesalahan saat verifikasi OTP."
+      );
     } finally {
       setLoading(false);
     }
