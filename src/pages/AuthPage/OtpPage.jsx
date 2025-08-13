@@ -14,14 +14,16 @@ const OtpPage = () => {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
-  const [resendMessage, setResendMessage] = useState(null); // pesan hijau/merah
-  const [resendStatus, setResendStatus] = useState(null); // "success" | "error"
+  const [resendMessage, setResendMessage] = useState(null);
+  const [resendStatus, setResendStatus] = useState(null);
 
   const navigate = useNavigate();
-  const no_hp = localStorage.getItem("no_hp") || "";
+  const no_hp =
+    typeof window !== "undefined" ? localStorage.getItem("no_hp") || "" : "";
 
-  // Setup timer awal
   useEffect(() => {
+    if (typeof window === "undefined") return; 
+
     const savedExpirationTime = localStorage.getItem("otpExpirationTime");
 
     if (savedExpirationTime) {
@@ -32,13 +34,8 @@ const OtpPage = () => {
         Math.floor((expirationTime - currentTime) / 1000)
       );
 
-      if (remainingTime > 0) {
-        setTimer(remainingTime);
-        setCanResend(false);
-      } else {
-        setTimer(0);
-        setCanResend(true);
-      }
+      setTimer(remainingTime);
+      setCanResend(remainingTime <= 0);
     } else {
       const expirationTime = Date.now() + 180 * 1000;
       localStorage.setItem("otpExpirationTime", expirationTime.toString());
@@ -49,22 +46,19 @@ const OtpPage = () => {
 
   // Countdown timer
   useEffect(() => {
-    let intervalId;
-    if (timer > 0) {
-      intervalId = setInterval(() => {
-        setTimer((prevTimer) => {
-          if (prevTimer <= 1) {
-            clearInterval(intervalId);
-            setCanResend(true);
-            return 0;
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
+    if (timer <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, [timer]);
 
   const formatTime = (seconds) =>
@@ -72,7 +66,6 @@ const OtpPage = () => {
       seconds % 60
     ).padStart(2, "0")}`;
 
-  // Notification untuk verifikasi sukses
   const showSuccessAlert = () => {
     setAlertData({
       iconImage: "/images/berhasil.png",
@@ -87,7 +80,6 @@ const OtpPage = () => {
     setShowAlert(true);
   };
 
-  // Notification untuk verifikasi gagal
   const showErrorAlert = (message) => {
     setAlertData({
       iconImage: "/images/gagal.png",
@@ -101,7 +93,6 @@ const OtpPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Cek OTP expired
     const savedExpirationTime = localStorage.getItem("otpExpirationTime");
     const currentTime = Date.now();
     if (
@@ -135,7 +126,6 @@ const OtpPage = () => {
     try {
       await AuthApi.resendOtp(no_hp);
 
-      // Reset timer & expiry
       const expirationTime = Date.now() + 180 * 1000;
       localStorage.setItem("otpExpirationTime", expirationTime.toString());
       setTimer(180);
@@ -162,7 +152,6 @@ const OtpPage = () => {
       {/* Right form */}
       <div className="relative flex items-start pt-40 lg:pt-50 justify-center px-6 lg:px-12 bg-white shadow-xl shadow-black">
         <div className="w-full max-w-sm">
-          {/* Back button */}
           <div className="absolute top-6 left-6 flex items-center gap-3 lg:hidden">
             <button
               onClick={() => navigate("/RegisterTokoPage")}
@@ -174,7 +163,6 @@ const OtpPage = () => {
             <h2 className="text-2xl font-bold text-black">Daftar Akun</h2>
           </div>
 
-          {/* Logo & instructions */}
           <div className="flex flex-col -mt-20 mb-4">
             <img
               src="/images/pasmeal.png"
@@ -186,7 +174,6 @@ const OtpPage = () => {
             </h5>
           </div>
 
-          {/* Pesan OTP kirim ulang */}
           {resendMessage && (
             <p
               className={`text-sm mb-2 ${
@@ -197,7 +184,6 @@ const OtpPage = () => {
             </p>
           )}
 
-          {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputText
               type="text"
@@ -207,7 +193,6 @@ const OtpPage = () => {
               placeholder="Kode OTP"
             />
 
-            {/* Resend & Timer */}
             <div className="flex items-center justify-between my-4 text-xs md:text-sm">
               <div className="flex items-center gap-1 whitespace-nowrap">
                 <span className="text-black">Tidak mendapatkan kode OTP?</span>
@@ -237,7 +222,6 @@ const OtpPage = () => {
         </div>
       </div>
 
-      {/* Notification Popup */}
       <Notification
         show={showAlert}
         onClose={() => setShowAlert(false)}
