@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
 import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputPassword from "../../components/Input/InputPassword";
 import Notification from "../../components/Popup/Notification";
+import { AuthApi } from "../../services/Auth";
 
 const NewPassPage = () => {
   const [password, setPassword] = useState("");
@@ -13,6 +14,10 @@ const NewPassPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertData, setAlertData] = useState({});
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Ambil token dari query string
+  const token = new URLSearchParams(location.search).get("token");
 
   const showSuccessAlert = () => {
     setAlertData({
@@ -28,15 +33,16 @@ const NewPassPage = () => {
     setShowAlert(true);
   };
 
-//   const showErrorAlert = () => {
-//     setAlertData({
-//       iconImage: "/images/gagal.png",
-//       title: "Gagal",
-//       message: "Kode OTP yang Anda masukkan tidak valid. Silakan coba lagi.",
-//       buttonText: "Oke",
-//     });
-//     setShowAlert(true);
-//   };
+  const showErrorAlert = (message) => {
+    setAlertData({
+      iconImage: "/images/gagal.png",
+      title: "Gagal",
+      message,
+      buttonText: "Tutup",
+      buttonAction: () => setShowAlert(false),
+    });
+    setShowAlert(true);
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -53,10 +59,24 @@ const NewPassPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      showSuccessAlert(); // Tampilkan modal berhasil
+
+    if (!token) {
+      showErrorAlert("Token tidak ditemukan atau sudah kadaluarsa.");
+      return;
+    }
+
+    if (!validate()) return;
+
+    try {
+      await AuthApi.resetPassword({ token, password, confirmPassword });
+      showSuccessAlert();
+    } catch (error) {
+      console.error(error);
+      const msg =
+        error.response?.data?.message || "Terjadi kesalahan, coba lagi.";
+      showErrorAlert(msg);
     }
   };
 
@@ -99,30 +119,26 @@ const NewPassPage = () => {
 
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <InputPassword
-                label="Kata Sandi"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Kata Sandi"
-                errorMessage={errors.password}
-              />
-            </div>
+            <InputPassword
+              label="Kata Sandi"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Kata Sandi"
+              errorMessage={errors.password}
+            />
 
-            <div>
-              <InputPassword
-                label="Konfirmasi Kata Sandi"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Konfirmasi Kata Sandi"
-                errorMessage={errors.confirmPassword}
-              />
-            </div>
+            <InputPassword
+              label="Konfirmasi Kata Sandi"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Konfirmasi Kata Sandi"
+              errorMessage={errors.confirmPassword}
+            />
 
             <PrimaryButton
+              type="submit"
               text="Ubah Kata Sandi"
-              onClick={handleSubmit}
-              className="w-full"
+              className="w-full mt-2"
             />
           </form>
         </div>
@@ -136,6 +152,6 @@ const NewPassPage = () => {
       />
     </div>
   );
-}
+};
 
 export default NewPassPage;

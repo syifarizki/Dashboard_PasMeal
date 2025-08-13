@@ -6,9 +6,9 @@ import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputText from "../../components/Input/InputText";
 import { AuthApi } from "../../services/Auth";
 
-const RegisterKiosPage = () => {
+const RegisterTokoPage = () => {
   const [namaToko, setNamaToko] = useState("");
-  const [namaRekening, setNamaRekening] = useState("");
+  const [namaBank, setNamaBank] = useState("");
   const [noRekening, setNoRekening] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -31,12 +31,12 @@ const RegisterKiosPage = () => {
 
       await AuthApi.registerKios({
         namaToko,
-        namaBank: namaRekening,
+        namaBank,
         noRekening,
         token,
       });
 
-      navigate("/LoginPage");
+      navigate("/OtpPage");
     } catch (error) {
       setErrorMsg(error.response?.data?.message || "Gagal mendaftarkan toko.");
     } finally {
@@ -59,7 +59,7 @@ const RegisterKiosPage = () => {
           {/* Back Button */}
           <div className="absolute top-6 left-6 flex items-center gap-3 lg:hidden">
             <button
-              onClick={() => navigate("/OtpPage")}
+              onClick={() => navigate("/RegisterPage")}
               className="p-2 rounded-full bg-primary text-black font-extrabold hover:bg-orange-600 transition"
               aria-label="Kembali"
             >
@@ -96,10 +96,10 @@ const RegisterKiosPage = () => {
             />
             <InputText
               type="text"
-              label="Nama Rekening"
-              value={namaRekening}
-              onChange={(e) => setNamaRekening(e.target.value)}
-              placeholder="Nama Rekening"
+              label="Nama Bank"
+              value={namaBank}
+              onChange={(e) => setNamaBank(e.target.value)}
+              placeholder="Nama Bank"
             />
             <InputText
               type="text"
@@ -110,10 +110,10 @@ const RegisterKiosPage = () => {
             />
 
             <PrimaryButton
-              type="submit"
               text={loading ? "Menyimpan..." : "Lanjut"}
+              type="submit"
               className="w-full mt-2"
-              disabled={!namaToko || !namaRekening || !noRekening || loading}
+              disabled={!namaToko || !namaBank || !noRekening || loading}
             />
           </form>
         </div>
@@ -122,4 +122,4 @@ const RegisterKiosPage = () => {
   );
 };
 
-export default RegisterKiosPage;
+export default RegisterTokoPage;

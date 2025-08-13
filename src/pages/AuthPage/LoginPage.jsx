@@ -6,11 +6,11 @@ import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputText from "../../components/Input/InputText";
 import InputPassword from "../../components/Input/InputPassword";
 import Notification from "../../components/Popup/Notification";
-import { AuthApi } from "../../services/Auth"; 
+import { AuthApi } from "../../services/Auth";
 
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
-  const [name, setName] = useState("");
+  const [nama, setNama] = useState("");
   const [password, setPassword] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [alertData, setAlertData] = useState({});
@@ -43,18 +43,15 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await AuthApi.login(name, password);
+      const res = await AuthApi.login(nama, password, rememberMe);
 
-      // misalnya API balikin token dan user data
       if (res?.token) {
-        // simpan token ke localStorage
         localStorage.setItem("token", res.token);
 
-        // kalau rememberMe aktif, bisa simpan name/password juga
         if (rememberMe) {
-          localStorage.setItem("rememberName", name);
+          localStorage.setItem("rememberNama", nama);
         } else {
-          localStorage.removeItem("rememberName");
+          localStorage.removeItem("rememberNama");
         }
 
         showSuccessAlert();
@@ -62,7 +59,6 @@ const LoginPage = () => {
         showErrorAlert(res?.message || "Login gagal");
       }
     } catch (error) {
-      console.error("Login error:", error);
       const errMsg =
         error?.response?.data?.message || "Terjadi kesalahan pada server";
       showErrorAlert(errMsg);
@@ -110,8 +106,8 @@ const LoginPage = () => {
             <InputText
               type="text"
               label="Nama"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
               placeholder="Nama"
             />
             <InputPassword
@@ -142,7 +138,7 @@ const LoginPage = () => {
               text="Masuk"
               onClick={handleSubmit}
               className="w-full"
-              disabled={!name || !password}
+              disabled={!nama || !password}
             />
           </form>
 

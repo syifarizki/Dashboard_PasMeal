@@ -13,8 +13,20 @@ export const AuthApi = {
     return res.data;
   },
 
-  login: async (name, password) => {
-    const res = await axios.post(`${API_URL}/api/login`, { name, password });
+  registerKios: async ({ namaToko, namaBank, noRekening, token }) => {
+    const res = await axios.post(
+      `${API_URL}/api/kios`,
+      {
+        nama_kios: namaToko,
+        nama_bank: namaBank,
+        nomor_rekening: noRekening,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return res.data;
   },
 
@@ -23,23 +35,34 @@ export const AuthApi = {
       no_hp,
       kode_otp,
     });
-    return res.data; // pastikan response ada token di sini
+    return res.data;
   },
 
-  registerKios: async ({ namaToko, namaBank, noRekening, token }) => {
-    const res = await axios.post(
-      `${API_URL}/api/kios`,
-      {
-        nama_toko: namaToko,
-        nama_bank: namaBank,
-        no_rekening: noRekening,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  resendOtp: async (no_hp) => {
+    const res = await axios.post(`${API_URL}/api/resend-otp`, { no_hp });
+    return res.data;
+  },
+
+  login: async (nama, password, rememberMe) => {
+    const res = await axios.post(`${API_URL}/api/login`, {
+      nama,
+      password,
+      rememberMe,
+    });
+    return res.data;
+  },
+
+  forgotPassword: async (no_hp) => {
+    const res = await axios.post(`${API_URL}/api/forgot-password`, { no_hp });
+    return res.data;
+  },
+
+  resetPassword: async ({ token, password, confirmPassword }) => {
+    const res = await axios.post(`${API_URL}/api/reset-password`, {
+      token,
+      password,
+      confirmPassword,
+    });
     return res.data;
   },
 };

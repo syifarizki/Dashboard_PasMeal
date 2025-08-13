@@ -37,9 +37,10 @@ const SliderContent = () => {
         alt="Ilustrasi"
         className="w-[70%] mx-auto max-w-xs md:max-w-sm lg:w-full lg:max-w-sm h-auto object-contain mb-6 lg:mb-8 transition-all duration-500 lg:mx-auto"
       />
-      <p className="text-gray-800 text-lg md:text-xl font-medium px-4 lg:px-0 lg:mb-8 lg:leading-relaxed">
+      <p className="text-black text-lg md:text-xl font-medium px-4 lg:px-0 lg:mb-8 lg:leading-relaxed text-center">
         {onboardings[activeIndex].text}
       </p>
+
       {/* Dot Indicator */}
       <div className="flex justify-center gap-2 lg:gap-3 mt-8 lg:mt-0">
         {onboardings.map((_, index) => (

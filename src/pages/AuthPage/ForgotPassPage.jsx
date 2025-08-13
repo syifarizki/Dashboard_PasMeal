@@ -4,6 +4,7 @@ import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
 import PrimaryButton from "../../components/Button/PrimaryButton";
 import InputPhone from "../../components/Input/InputPhone";
+import { AuthApi } from "../../services/Auth"; 
 
 const ForgotPassPage = () => {
   const [phone, setPhone] = useState("");
@@ -11,7 +12,7 @@ const ForgotPassPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!phone) {
@@ -19,15 +20,18 @@ const ForgotPassPage = () => {
       return;
     }
 
-    console.log("Lupa kata sandi diklik");
-    console.log("Nomor Telepon:", phone);
-
-    setSuccessMessage("Tautan reset kata sandi telah dikirim ke nomor Anda.");
-    setErrorMessage("");
-
-    setTimeout(() => {
+    try {
+      const res = await AuthApi.forgotPassword(phone);
+      setSuccessMessage(
+        res.message || "Tautan reset kata sandi telah dikirim."
+      );
+      setErrorMessage("");
+    } catch (err) {
+      setErrorMessage(
+        err.response?.data?.message || "Gagal mengirim tautan reset."
+      );
       setSuccessMessage("");
-    }, 5000);
+    }
   };
 
   return (
@@ -67,10 +71,10 @@ const ForgotPassPage = () => {
           </div>
 
           {successMessage && (
-            <div className="text-green-600 text-sm">{successMessage}</div>
+            <div className="text-green-600 text-sm mb-5">{successMessage}</div>
           )}
           {errorMessage && (
-            <div className="text-red-600 text-sm">{errorMessage}</div>
+            <div className="text-red-600 text-sm mb-5">{errorMessage}</div>
           )}
 
           {/* Form */}
@@ -84,7 +88,7 @@ const ForgotPassPage = () => {
 
             <PrimaryButton
               text="Kirim"
-              onClick={handleSubmit}
+              type="submit"
               className="w-full mt-2"
               disabled={!phone}
             />
@@ -93,6 +97,6 @@ const ForgotPassPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default ForgotPassPage;

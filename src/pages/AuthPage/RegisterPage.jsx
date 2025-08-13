@@ -61,8 +61,11 @@ const RegisterPage = () => {
         confirmPassword,
       });
 
-      console.log("Register sukses:", res);
-      navigate("/OtpPage", { state: { no_hp: phone } });
+      // Simpan token dan no_hp untuk keperluan register kios dan OTP
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("no_hp", phone);
+
+      navigate("/RegisterTokoPage");
     } catch (error) {
       console.error("Register gagal:", error);
       setErrors({
@@ -171,10 +174,18 @@ const RegisterPage = () => {
             </div>
 
             <PrimaryButton
-              text={loading ? "Memproses..." : "Daftar"}
-              className="w-full"
-              disabled={loading}
               type="submit"
+              text={loading ? "Memproses..." : "Lanjut"}
+              className="w-full"
+              disabled={
+                loading ||
+                !nama ||
+                !phone ||
+                !email ||
+                !password ||
+                !confirmPassword ||
+                !agreeToTerms
+              }
             />
           </form>
 
