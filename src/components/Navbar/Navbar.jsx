@@ -1,11 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AvatarDropdown from "./AvatarDropdown";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { Penjual } from "../../services/Penjual";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [namaUser, setNamaUser] = useState("User");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await Penjual.getProfile(token);
+        // Cek struktur data API
+        if (res?.data?.nama) {
+          setNamaUser(res.data.nama);
+        } else if (res?.nama) {
+          setNamaUser(res.nama);
+        } else {
+          setNamaUser("User");
+        }
+      } catch (error) {
+        console.error("Gagal memuat profil penjual:", error);
+        setNamaUser("User");
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const getPageInfo = () => {
     if (location.pathname.startsWith("/MenuPage/EditMenuPage")) {
@@ -17,19 +43,18 @@ const Navbar = () => {
       };
     }
 
-  if (location.pathname.startsWith("/OrderDetailPage")) {
-    const from = location.state?.from;
-    const title =
-      from === "history" ? "Detail Riwayat Pesanan" : "Detail Pesanan";
+    if (location.pathname.startsWith("/OrderDetailPage")) {
+      const from = location.state?.from;
+      const title =
+        from === "history" ? "Detail Riwayat Pesanan" : "Detail Pesanan";
 
-    return {
-      title,
-      className: "text-primary font-extrabold text-xl md:text-3xl",
-      showBackButton: true,
-      centered: true,
-    };
-  }
-
+      return {
+        title,
+        className: "text-primary font-extrabold text-xl md:text-3xl",
+        showBackButton: true,
+        centered: true,
+      };
+    }
 
     switch (location.pathname) {
       case "/MenuPage":
@@ -62,7 +87,7 @@ const Navbar = () => {
         };
       default:
         return {
-          title: "Selamat Datang, Syifa.",
+          title: `Selamat Datang, ${namaUser}.`,
           className: "text-black font-medium text-lg md:text-2xl",
           showBackButton: false,
           centered: false,
@@ -70,7 +95,7 @@ const Navbar = () => {
     }
   };
 
-const { title, className, showBackButton, centered } = getPageInfo();
+  const { title, className, showBackButton, centered } = getPageInfo();
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white z-30 shadow-lg px-4 py-2 flex items-center pl-4 pr-4 md:pl-6 md:pr-6 lg:pl-10 lg:pr-10 lg:ml-64 justify-between">
@@ -99,6 +124,6 @@ const { title, className, showBackButton, centered } = getPageInfo();
       </div>
     </nav>
   );
-}
+};
 
 export default Navbar;
