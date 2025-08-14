@@ -4,24 +4,19 @@ import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbLogout2 } from "react-icons/tb";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import { IoIosArrowForward } from "react-icons/io";
-import { AuthApi } from "../../services/Auth"; // pastikan path sesuai
+import { AuthApi } from "../../services/Auth";
+import { Penjual } from "../../services/Penjual";
+import { Kios } from "../../services/Kios";
 
 const AvatarDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showNotification, setShowNotification] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const isProfileComplete = false;
-
   const toggleDropdown = () => {
-    setIsOpen((prev) => {
-      const next = !prev;
-      if (next && !isProfileComplete) {
-        setShowNotification(true);
-      }
-      return next;
-    });
+    setIsOpen((prev) => !prev);
   };
 
   const closeDropdown = () => setIsOpen(false);
@@ -33,18 +28,61 @@ const AvatarDropdown = () => {
         navigate("/LoginPage");
         return;
       }
-
       await AuthApi.logout(token);
-
-      // Hapus data user di localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-
       navigate("/LoginPage");
     } catch (err) {
       console.error("Gagal logout:", err);
     }
   };
+
+  // ✅ Cek kelengkapan profil
+  useEffect(() => {
+    const fetchProfileStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const [penjualRes, kiosRes] = await Promise.all([
+          Penjual.getProfile(token),
+          Kios.getKios(token),
+        ]);
+
+        // Ambil data di dalam "data" jika ada
+        const penjual = penjualRes?.data || penjualRes;
+        const kios = kiosRes?.data || kiosRes;
+
+        // Debug (kalau mau cek di console)
+        // console.log("Penjual:", penjual);
+        // console.log("Kios:", kios);
+
+        const penjualLengkap =
+          Boolean(penjual?.nama) &&
+          Boolean(penjual?.no_hp) &&
+          Boolean(penjual?.email);
+
+        const kiosLengkap =
+          Boolean(kios?.nama_kios) &&
+          Boolean(kios?.deskripsi) &&
+          Boolean(kios?.nama_bank) &&
+          Boolean(kios?.nomor_rekening) &&
+          Boolean(kios?.gambar_kios);
+
+        if (penjualLengkap && kiosLengkap) {
+          setIsProfileComplete(true);
+          setShowNotification(false);
+        } else {
+          setIsProfileComplete(false);
+          setShowNotification(true);
+        }
+      } catch (err) {
+        console.error("Gagal cek kelengkapan profil:", err);
+      }
+    };
+
+    fetchProfileStatus();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -52,11 +90,8 @@ const AvatarDropdown = () => {
         closeDropdown();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -85,7 +120,7 @@ const AvatarDropdown = () => {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-10">
-          {/* Notifikasi profil belum lengkap */}
+          {/* Notifikasi hanya muncul jika profil belum lengkap */}
           {!isProfileComplete && showNotification && (
             <div
               className="absolute 

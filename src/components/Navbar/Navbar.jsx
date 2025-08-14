@@ -16,7 +16,6 @@ const Navbar = () => {
         if (!token) return;
 
         const res = await Penjual.getProfile(token);
-        // Cek struktur data API
         if (res?.data?.nama) {
           setNamaUser(res.data.nama);
         } else if (res?.nama) {
