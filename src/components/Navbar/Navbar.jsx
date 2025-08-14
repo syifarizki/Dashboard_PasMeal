@@ -9,27 +9,31 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [namaUser, setNamaUser] = useState("User");
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-        const res = await Penjual.getProfile(token);
-        if (res?.data?.nama) {
-          setNamaUser(res.data.nama);
-        } else if (res?.nama) {
-          setNamaUser(res.nama);
-        } else {
-          setNamaUser("User");
-        }
-      } catch (error) {
-        console.error("Gagal memuat profil penjual:", error);
+      const res = await Penjual.getProfile(token);
+      if (res?.data?.nama) {
+        setNamaUser(res.data.nama);
+      } else if (res?.nama) {
+        setNamaUser(res.nama);
+      } else {
         setNamaUser("User");
       }
-    };
+    } catch (error) {
+      console.error("Gagal memuat profil penjual:", error);
+      setNamaUser("User");
+    }
+  };
 
-    fetchUser();
+  useEffect(() => {
+    fetchUser(); // fetch saat pertama kali load
+
+    // Refresh nama user secara berkala setiap 1 detik
+    const interval = setInterval(fetchUser, 1000);
+    return () => clearInterval(interval); // bersihkan interval saat unmount
   }, []);
 
   const getPageInfo = () => {
