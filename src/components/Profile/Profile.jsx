@@ -1,25 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InputText from "../../components/Input/InputText";
 import InputPhone from "../../components/Input/InputPhone";
 import InputEmail from "../../components/Input/InputEmail";
 import PrimaryButton from "../../components/Button/PrimaryButton";
+import Notification from "../../components/Popup/Notification";
+import { Penjual } from "../../services/Penjual";
 
 const Profile = () => {
   const [name, setName] = useState("");
   const [noPhone, setNoPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [initialData, setInitialData] = useState(null);
+  const [showPopup, setShowPopup] = useState(false); 
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await Penjual.getProfile(token);
+        if (res.data) {
+          setName(res.data.nama || "");
+          setNoPhone(res.data.no_hp || "");
+          setEmail(res.data.email || "");
+          setInitialData(res.data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil profil:", err);
+      }
+    };
+    loadProfile();
+  }, [token]);
 
   const handleCancel = () => {
-    setName("");
-    setNoPhone("");
-    setEmail("");
+    if (initialData) {
+      setName(initialData.nama || "");
+      setNoPhone(initialData.no_hp || "");
+      setEmail(initialData.email || "");
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Data disimpan:", { name, noPhone, email });
+    try {
+      const res = await Penjual.updateProfile({
+        nama: name,
+        no_hp: noPhone,
+        email: email,
+        token,
+      });
+      if (res.data) {
+        setInitialData(res.data);
+        setShowPopup(true); 
+      }
+    } catch (err) {
+      console.error("Gagal update profil:", err);
+      alert("Gagal memperbarui profil");
+    }
   };
-  
+
   return (
     <>
       <form
@@ -34,36 +72,42 @@ const Profile = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nama"
-            // errorMessage={errors.name}
           />
           <InputPhone
             label="Nomor WhatsApp"
             value={noPhone}
             onChange={setNoPhone}
             placeholder="Nomor WhatsApp"
-            // errorMessage={errors.noPhone}
           />
-
           <InputEmail
             label="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
-            // errorMessage={errors.email}
           />
         </div>
-        <div className="flex  justify-end mt-6 gap-2">
+        <div className="flex justify-end mt-6 gap-2">
           <PrimaryButton
             type="button"
             text="Batal"
             onClick={handleCancel}
-            className="px-4 py-2 "
+            className="px-4 py-2"
           />
-          <PrimaryButton type="submit" text="Simpan" className="px-4 py-2 " />
+          <PrimaryButton type="submit" text="Simpan" className="px-4 py-2" />
         </div>
       </form>
+
+      {/* Popup notifikasi */}
+      <Notification
+        show={showPopup}
+        onClose={() => setShowPopup(false)}
+        iconImage="/images/berhasil.png" 
+        title="Berhasil!"
+        message="Profil berhasil diperbarui."
+        buttonText="Tutup"
+      />
     </>
   );
-}
+};
 
 export default Profile;
