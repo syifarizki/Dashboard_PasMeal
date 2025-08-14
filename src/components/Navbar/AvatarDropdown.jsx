@@ -5,11 +5,12 @@ import { TbLogout2 } from "react-icons/tb";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import { IoIosArrowForward } from "react-icons/io";
 import { AuthApi } from "../../services/Auth";
-import { Penjual } from "../../services/Penjual";
 import { Kios } from "../../services/Kios";
+import { Penjual } from "../../services/Penjual";
 
 const AvatarDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("/images/profile.png");
   const [showNotification, setShowNotification] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const dropdownRef = useRef(null);
@@ -27,6 +28,9 @@ const AvatarDropdown = () => {
 
       const penjual = penjualRes?.data || penjualRes;
       const kios = kiosRes?.data || kiosRes;
+
+      // Update avatar dari kios
+      setAvatarUrl(kios?.gambar_kios || "/images/profile.png");
 
       const penjualLengkap =
         Boolean(penjual?.nama) &&
@@ -52,22 +56,24 @@ const AvatarDropdown = () => {
     }
   };
 
-  const toggleDropdown = async () => {
-    if (!isOpen) {
-      await fetchProfileStatus(); // ✅ Cek ulang setiap kali dibuka
-    }
-    setIsOpen((prev) => !prev);
-  };
+  // Fetch setiap kali komponen mount
+  useEffect(() => {
+    fetchProfileStatus();
+  }, []);
 
+  // Refresh avatar secara berkala (opsional, misal setiap 5 detik)
+  useEffect(() => {
+    const interval = setInterval(fetchProfileStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleDropdown = () => setIsOpen((prev) => !prev);
   const closeDropdown = () => setIsOpen(false);
 
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/LoginPage");
-        return;
-      }
+      if (!token) return navigate("/LoginPage");
       await AuthApi.logout(token);
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -77,32 +83,16 @@ const AvatarDropdown = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProfileStatus(); // Cek saat pertama kali load
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        closeDropdown();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
     <div className="relative inline-block" ref={dropdownRef}>
       <div className="flex items-center space-x-2">
         <button
           onClick={toggleDropdown}
           className="flex items-center space-x-2"
-          aria-expanded={isOpen}
-          aria-haspopup="true"
         >
           <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-black rounded-full">
             <img
-              src="/images/images.jpg"
+              src={avatarUrl}
               alt="User Avatar"
               className="object-cover w-full h-full rounded-full cursor-pointer"
             />
@@ -117,24 +107,13 @@ const AvatarDropdown = () => {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-10">
-          {/* Notifikasi hanya muncul jika profil belum lengkap */}
           {!isProfileComplete && showNotification && (
-            <div
-              className="absolute 
-                w-[80vw] max-w-[140px] 
-                -left-[149px] 
-                md:max-w-[310px] md:-left-[320px] 
-                top-1 
-                bg-white border border-primary rounded-lg shadow-lg 
-                py-4 px-2 md:p-4 text-black z-20"
-            >
+            <div className="absolute w-[80vw] max-w-[140px] -left-[149px] md:max-w-[310px] md:-left-[320px] top-1 bg-white border border-primary rounded-lg shadow-lg py-4 px-2 md:p-4 text-black z-20">
               <p className="text-xs md:text-base font-medium leading-snug break-words">
                 Profil kamu belum lengkap! Unggah foto dan isi deskripsi toko
                 agar lebih menarik.
               </p>
-
               <div className="absolute -right-2 top-6 w-4 h-4 bg-white border-t border-r border-primary rotate-45 z-[-1]" />
-
               <button
                 className="absolute bottom-2 right-2 p-1 rounded-full bg-black text-white font-bold"
                 onClick={() => setShowNotification(false)}
