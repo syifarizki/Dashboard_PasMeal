@@ -15,7 +15,47 @@ const AvatarDropdown = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const toggleDropdown = () => {
+  const fetchProfileStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const [penjualRes, kiosRes] = await Promise.all([
+        Penjual.getProfile(token),
+        Kios.getKios(token),
+      ]);
+
+      const penjual = penjualRes?.data || penjualRes;
+      const kios = kiosRes?.data || kiosRes;
+
+      const penjualLengkap =
+        Boolean(penjual?.nama) &&
+        Boolean(penjual?.no_hp) &&
+        Boolean(penjual?.email);
+
+      const kiosLengkap =
+        Boolean(kios?.nama_kios) &&
+        Boolean(kios?.deskripsi) &&
+        Boolean(kios?.nama_bank) &&
+        Boolean(kios?.nomor_rekening) &&
+        Boolean(kios?.gambar_kios);
+
+      if (penjualLengkap && kiosLengkap) {
+        setIsProfileComplete(true);
+        setShowNotification(false);
+      } else {
+        setIsProfileComplete(false);
+        setShowNotification(true);
+      }
+    } catch (err) {
+      console.error("Gagal cek kelengkapan profil:", err);
+    }
+  };
+
+  const toggleDropdown = async () => {
+    if (!isOpen) {
+      await fetchProfileStatus(); // ✅ Cek ulang setiap kali dibuka
+    }
     setIsOpen((prev) => !prev);
   };
 
@@ -37,51 +77,8 @@ const AvatarDropdown = () => {
     }
   };
 
-  // ✅ Cek kelengkapan profil
   useEffect(() => {
-    const fetchProfileStatus = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const [penjualRes, kiosRes] = await Promise.all([
-          Penjual.getProfile(token),
-          Kios.getKios(token),
-        ]);
-
-        // Ambil data di dalam "data" jika ada
-        const penjual = penjualRes?.data || penjualRes;
-        const kios = kiosRes?.data || kiosRes;
-
-        // Debug (kalau mau cek di console)
-        // console.log("Penjual:", penjual);
-        // console.log("Kios:", kios);
-
-        const penjualLengkap =
-          Boolean(penjual?.nama) &&
-          Boolean(penjual?.no_hp) &&
-          Boolean(penjual?.email);
-
-        const kiosLengkap =
-          Boolean(kios?.nama_kios) &&
-          Boolean(kios?.deskripsi) &&
-          Boolean(kios?.nama_bank) &&
-          Boolean(kios?.nomor_rekening) &&
-          Boolean(kios?.gambar_kios);
-
-        if (penjualLengkap && kiosLengkap) {
-          setIsProfileComplete(true);
-          setShowNotification(false);
-        } else {
-          setIsProfileComplete(false);
-          setShowNotification(true);
-        }
-      } catch (err) {
-        console.error("Gagal cek kelengkapan profil:", err);
-      }
-    };
-
-    fetchProfileStatus();
+    fetchProfileStatus(); // Cek saat pertama kali load
   }, []);
 
   useEffect(() => {
