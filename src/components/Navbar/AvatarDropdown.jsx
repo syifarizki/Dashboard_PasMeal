@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { TbLogout2 } from "react-icons/tb";
 import { HiOutlinePencilSquare } from "react-icons/hi2";
 import { IoIosArrowForward } from "react-icons/io";
+import { AuthApi } from "../../services/Auth"; // pastikan path sesuai
 
 const AvatarDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(true);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const isProfileComplete = false;
+
   const toggleDropdown = () => {
     setIsOpen((prev) => {
       const next = !prev;
@@ -22,6 +25,26 @@ const AvatarDropdown = () => {
   };
 
   const closeDropdown = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/LoginPage");
+        return;
+      }
+
+      await AuthApi.logout(token);
+
+      // Hapus data user di localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      navigate("/LoginPage");
+    } catch (err) {
+      console.error("Gagal logout:", err);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,7 +114,7 @@ const AvatarDropdown = () => {
 
           <Link
             to="/ProfilePage"
-            className="flex items-center gap-2 px-4 py-2 text-base text-black font-bold"
+            className="flex items-center gap-2 px-4 py-2 text-base text-black font-bold cursor-pointer"
             onClick={closeDropdown}
           >
             <HiOutlinePencilSquare className="w-5 h-5" />
@@ -99,10 +122,10 @@ const AvatarDropdown = () => {
           </Link>
 
           <button
-            className="flex items-center gap-2 w-full px-4 py-2 text-base text-black font-bold border-t text-left"
+            className="flex items-center gap-2 w-full px-4 py-2 text-base text-black font-bold border-t text-left cursor-pointer"
             onClick={() => {
               closeDropdown();
-              // handleLogout();
+              handleLogout();
             }}
           >
             <TbLogout2 className="w-5 h-5" />
@@ -112,6 +135,6 @@ const AvatarDropdown = () => {
       )}
     </div>
   );
-}
+};
 
 export default AvatarDropdown;

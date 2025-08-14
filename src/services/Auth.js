@@ -65,4 +65,17 @@ export const AuthApi = {
     });
     return res.data;
   },
+
+  logout: async (token) => {
+    const res = await axios.post(
+      `${API_URL}/api/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  },
 };
