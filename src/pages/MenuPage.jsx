@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HiChevronRight, HiPlus } from "react-icons/hi";
 import { IoMdEye } from "react-icons/io";
@@ -6,66 +6,99 @@ import PrimaryButton from "../components/Button/PrimaryButton";
 import MenuDetail from "../components/Menu/MenuDetail";
 import Table from "../components/Table";
 import ToggleSwitch from "../components/Input/ToggleSwitch";
+import { Menu } from "../services/Menu";
 
 const MenuPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const token = localStorage.getItem("token");
 
   const [menuItems, setMenuItems] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
   const [selectedMenu, setSelectedMenu] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  useEffect(() => {
-    const storedMenus = JSON.parse(localStorage.getItem("menus")) || [];
-    setMenuItems(storedMenus);
-  }, []);
-
-  useEffect(() => {
-    if (location.state && location.state.success) {
-      setSuccessMessage(location.state.success);
-      const timer = setTimeout(() => setSuccessMessage(""), 3000);
-      window.history.replaceState({}, document.title);
-      return () => clearTimeout(timer);
+  // Load menu dari API
+  const loadMenus = useCallback(async () => {
+    try {
+      const data = await Menu.getMenus(token);
+      if (Array.isArray(data)) {
+        if (location.state?.newMenu) {
+          const exists = data.find((m) => m.id === location.state.newMenu.id);
+          if (!exists) setMenuItems([location.state.newMenu, ...data]);
+          else setMenuItems(data);
+        } else {
+          setMenuItems(data);
+        }
+      }
+    } catch (error) {
+      console.error("Gagal mengambil menu:", error);
     }
-  }, [location.state]);
+  }, [token, location.state?.newMenu]);
 
+  useEffect(() => {
+    loadMenus();
+  }, [loadMenus]);
+
+  // Hapus newMenu dari navigasi state
+  useEffect(() => {
+    if (location.state?.newMenu) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state?.newMenu]);
+
+  // Hapus menu
   const handleDelete = (id) => {
-    const updatedMenus = menuItems.filter((menu) => menu.id !== id);
-    setMenuItems(updatedMenus);
-    localStorage.setItem("menus", JSON.stringify(updatedMenus));
+    setMenuItems((prev) => prev.filter((m) => m.id !== id));
     setSelectedMenu(null);
-    navigate("/MenuPage", { state: { success: "Berhasil menghapus menu" } });
+    setSuccessMessage("Berhasil menghapus menu");
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  const handleToggleStock = (id) => {
-    const updatedMenus = menuItems.map((menu) =>
-      menu.id === id ? { ...menu, isAvailable: !menu.isAvailable } : menu
-    );
-    setMenuItems(updatedMenus);
-    localStorage.setItem("menus", JSON.stringify(updatedMenus));
+  // Toggle status stok menu
+  const handleToggleStock = async (id, currentStock) => {
+    try {
+      const payload = { status_tersedia: !currentStock };
+      const updatedMenu = await Menu.updateMenu(id, payload, token, false);
+
+      setMenuItems((prev) =>
+        prev.map((m) =>
+          m.id === id
+            ? { ...m, status_tersedia: updatedMenu.status_tersedia }
+            : m
+        )
+      );
+      setSuccessMessage("Berhasil mengubah status menu");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  const formatPrice = (price) =>
+    price !== undefined && price !== null
+      ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      : "";
 
   const columns = ["Nama Menu", "Harga", "Status Stok", "Aksi"];
   const customRender = {
     "Nama Menu": (item) => (
       <div className="flex items-center gap-3">
         <img
-          src={item.image}
-          alt={item.menuName}
+          src={item.foto_menu_full || "/images/menudefault.jpg"}
+          alt={item.nama_menu}
           className="w-14 h-14 rounded-xl object-cover border border-gray-200"
         />
-        <span className="font-bold text-lg text-gray-800">{item.menuName}</span>
+        <span className="font-bold text-lg text-gray-800">
+          {item.nama_menu}
+        </span>
       </div>
     ),
-    Harga: (item) => (
-      <span className="text-base text-black">Rp. {item.price}</span>
-    ),
-
+    Harga: (item) => <span>Rp. {formatPrice(item.harga)}</span>,
     "Status Stok": (item) => (
       <div className="ml-6">
         <ToggleSwitch
-          checked={item.isAvailable}
-          onChange={() => handleToggleStock(item.id)}
+          checked={item.status_tersedia}
+          onChange={() => handleToggleStock(item.id, item.status_tersedia)}
         />
       </div>
     ),
@@ -82,10 +115,11 @@ const MenuPage = () => {
   return (
     <div className="flex flex-col mt-20 items-center min-h-[60vh]">
       {successMessage && (
-        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white text-base font-medium px-4 py-2 rounded-lg shadow-md whitespace-nowrap w-fit left-1/2 -translate-x-1/2 lg:left-[calc(16rem+50%)] lg:-translate-x-[calc(50%+8rem)]">
+        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg">
           {successMessage}
         </div>
       )}
+
       {menuItems.length === 0 ? (
         <div className="flex flex-col items-center text-center mt-10 px-6">
           <img
@@ -106,7 +140,7 @@ const MenuPage = () => {
           <div className="w-full max-w-2xl border border-gray-300 rounded-xl overflow-hidden md:hidden">
             {menuItems.map((item, index) => (
               <div
-                key={item.id}
+                key={item.id || index} // <-- pastikan ada key unik
                 onClick={() => setSelectedMenu(item)}
                 className={`cursor-pointer flex items-center bg-white p-4 hover:bg-gray-50 transition-colors ${
                   index !== menuItems.length - 1
@@ -115,15 +149,15 @@ const MenuPage = () => {
                 }`}
               >
                 <img
-                  src={item.image}
-                  alt={item.menuName}
+                  src={item.foto_menu_full || "/images/menudefault.jpg"}
+                  alt={item.nama_menu}
                   className="w-14 h-14 object-cover rounded-xl border border-gray-200"
                 />
                 <div className="ml-4 flex-1">
                   <h2 className="text-lg font-bold text-gray-900">
-                    {item.menuName}
+                    {item.nama_menu}
                   </h2>
-                  <p className="text-gray-600">Rp. {item.price}</p>
+                  <p className="text-gray-600">Rp. {formatPrice(item.harga)}</p>
                 </div>
                 <HiChevronRight className="w-10 h-10 text-black" />
               </div>
@@ -136,11 +170,12 @@ const MenuPage = () => {
               columns={columns}
               data={menuItems}
               customRender={customRender}
+              rowKey="id"
             />
           </div>
         </>
-      )}{" "}
-      {/* Tombol Tambah */}
+      )}
+
       <div className="fixed bottom-6 inset-x-0 flex justify-center px-8 z-50 lg:ml-[256px] lg:w-[calc(100%-256px)]">
         <div className="w-full max-w-6xl">
           <PrimaryButton
@@ -159,7 +194,7 @@ const MenuPage = () => {
           />
         </div>
       </div>
-      {/* Detail Dialog */}
+
       {selectedMenu && (
         <MenuDetail
           menu={selectedMenu}
@@ -169,8 +204,6 @@ const MenuPage = () => {
       )}
     </div>
   );
-}
+};
 
 export default MenuPage;
-
-
