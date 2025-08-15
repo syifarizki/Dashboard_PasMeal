@@ -2,36 +2,36 @@ import { useEffect, useState } from "react";
 import { FaClipboardList, FaWallet } from "react-icons/fa";
 import { RiListSettingsLine } from "react-icons/ri";
 import InfoCard from "../components/InfoCard";
+import { Dashboard } from "../services/Dashboard";
 
 const DashboardPage = () => {
   const [menuCount, setMenuCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [revenue, setRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedMenus = JSON.parse(localStorage.getItem("menus") || "[]");
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
+    const fetchDashboard = async () => {
+      try {
+        const token = localStorage.getItem("token"); 
+        const data = await Dashboard.getDashboardData(token);
 
-    // Hitung total menu
-    setMenuCount(storedMenus.length);
+        setMenuCount(data.totalMenu || 0);
+        setOrderCount(data.totalPesanan || 0);
+        setRevenue(data.pendapatan || 0);
+      } catch (error) {
+        console.error("Gagal mengambil data dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Hitung total pesanan yang belum selesai
-    const unfinishedOrders = storedOrders.filter(
-      (order) => order.status !== "Pesanan Selesai"
-    );
-    setOrderCount(unfinishedOrders.length);
-
-    // Hitung total pendapatan dari pesanan yang selesai
-    const totalPendapatan = storedOrders
-      .filter((order) => order.status === "Pesanan Selesai")
-      .reduce((acc, curr) => {
-        const numericTotal = parseInt(
-          String(curr.total).replace(/\D/g, "") || "0"
-        );
-        return acc + numericTotal;
-      }, 0);
-    setRevenue(totalPendapatan);
+    fetchDashboard();
   }, []);
+
+  if (loading) {
+    return <p className="text-center mt-20">Loading data dashboard...</p>;
+  }
 
   return (
     <div className="px-6 py-20">
@@ -57,7 +57,6 @@ const DashboardPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default DashboardPage;
-
