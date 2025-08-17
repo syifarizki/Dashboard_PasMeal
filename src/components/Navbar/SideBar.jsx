@@ -4,6 +4,7 @@ import { LiaTimesSolid } from "react-icons/lia";
 import { MdDashboard, MdOutlineHistory } from "react-icons/md";
 import { RiListSettingsLine } from "react-icons/ri";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Pesanan } from "../../services/Pesanan";
 
 const navItems = [
   {
@@ -33,14 +34,22 @@ const SideBar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const unfinishedOrders = storedOrders.filter(
-      (order) => order.status !== "Pesanan Selesai"
-    );
-    setOrderCount(unfinishedOrders.length);
-  }, []);
+  // Ambil jumlah pesanan masuk dari API
+useEffect(() => {
+  const fetchOrderCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const data = await Pesanan.getCountPesananMasuk(token);
+      setOrderCount(data.jumlah || 0);
+    } catch (err) {
+      console.error("Gagal ambil jumlah pesanan:", err);
+    }
+  };
 
+  fetchOrderCount();
+  const interval = setInterval(fetchOrderCount, 30000);
+  return () => clearInterval(interval);
+}, []);
   const showBackButton =
     location.pathname === "/AddMenuPage" ||
     location.pathname.includes("/EditMenuPage") ||
@@ -60,9 +69,9 @@ const SideBar = ({ isOpen, setIsOpen }) => {
       if (fromState === "history") return "/OrderHistoryPage";
       return "/OrderPage";
     }
-      if (location.pathname === "/ProfilePage") {
-        return "/DashboardPage";
-      }
+    if (location.pathname === "/ProfilePage") {
+      return "/DashboardPage";
+    }
 
     return location.pathname;
   };
@@ -169,6 +178,6 @@ const SideBar = ({ isOpen, setIsOpen }) => {
       </div>
     </>
   );
-}
+};
 
 export default SideBar;

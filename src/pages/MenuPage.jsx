@@ -88,12 +88,12 @@ const MenuPage = () => {
           alt={item.nama_menu}
           className="w-14 h-14 rounded-xl object-cover border border-gray-200"
         />
-        <span className="font-bold text-lg text-gray-800">
+        <span className="font-semibold text-lg text-black">
           {item.nama_menu}
         </span>
       </div>
     ),
-    Harga: (item) => <span>Rp. {formatPrice(item.harga)}</span>,
+    Harga: (item) => <span className="text-base">Rp. {formatPrice(item.harga)}</span>,
     "Status Stok": (item) => (
       <div className="ml-6">
         <ToggleSwitch
@@ -140,7 +140,7 @@ const MenuPage = () => {
           <div className="w-full max-w-2xl border border-gray-300 rounded-xl overflow-hidden md:hidden">
             {menuItems.map((item, index) => (
               <div
-                key={item.id || index} // <-- pastikan ada key unik
+                key={item.id || index} 
                 onClick={() => setSelectedMenu(item)}
                 className={`cursor-pointer flex items-center bg-white p-4 hover:bg-gray-50 transition-colors ${
                   index !== menuItems.length - 1
@@ -157,7 +157,7 @@ const MenuPage = () => {
                   <h2 className="text-lg font-bold text-gray-900">
                     {item.nama_menu}
                   </h2>
-                  <p className="text-gray-600">Rp. {formatPrice(item.harga)}</p>
+                  <p className="text-black">Rp. {formatPrice(item.harga)}</p>
                 </div>
                 <HiChevronRight className="w-10 h-10 text-black" />
               </div>

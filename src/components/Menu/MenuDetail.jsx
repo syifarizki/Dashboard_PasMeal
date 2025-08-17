@@ -22,7 +22,7 @@ const MenuDetail = ({ menu, onClose, onDelete }) => {
       setLoading(true);
       const token = localStorage.getItem("token");
       await Menu.deleteMenu(menu.id, token);
-      onDelete(menu.id); // update list menu di parent
+      onDelete(menu.id); 
       onClose();
     } catch (error) {
       console.error("Gagal menghapus menu:", error);

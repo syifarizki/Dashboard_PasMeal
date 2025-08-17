@@ -19,4 +19,13 @@ export const Pesanan = {
     });
     return res.data;
   },
+
+  getCountPesananMasuk: async (token) => {
+    const res = await axios.get(`${API_URL}/api/pesanan-masuk/count`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data; 
+  },
 };
