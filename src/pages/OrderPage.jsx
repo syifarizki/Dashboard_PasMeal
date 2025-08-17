@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { IoMdEye } from "react-icons/io";
 import OrderCard from "../components/Order/OrderCard";
 import Table from "../components/Table";
+import { Pesanan } from "../services/Pesanan";
 
 const columns = [
   "No",
   "Nama Pelanggan",
   "Tanggal",
   "Harga",
-  "Status Pesanan", 
+  "Status Pesanan",
   "Detail",
 ];
 
@@ -18,34 +19,34 @@ const OrderPage = () => {
   const [orderList, setOrderList] = useState([]);
 
   useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    setOrderList(storedOrders);
-  }, []);
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("token"); 
+        if (!token) return;
 
-  useEffect(() => {
-    const handleFocus = () => {
-      const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-      setOrderList(storedOrders);
+        const data = await Pesanan.getPesananMasuk(token);
+        setOrderList(data || []);
+      } catch (err) {
+        console.error("Gagal ambil pesanan masuk:", err);
+      }
     };
 
+    fetchOrders();
+
+    const handleFocus = () => fetchOrders();
     window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
-  // Ambil hanya pesanan yang belum selesai
-  const activeOrders = orderList.filter(
-    (order) => order.status !== "Pesanan Selesai"
-  );
+  const activeOrders = orderList.filter((order) => order.status !== "done");
 
-  const transformedData = activeOrders.map((order, idx) => ({
-    No: idx + 1,
-    "Nama Pelanggan": order.name,
-    Tanggal: order.time,
-    Harga: order.total,
+  const transformedData = activeOrders.map((order) => ({
+    No: order.nomor,
+    "Nama Pelanggan": order.nama,
+    Tanggal: order.tanggal_bayar,
+    Harga: `Rp. ${Number(order.total_harga).toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
-    Detail: order.orderNumber,
+    id: order.id,
   }));
 
   return (
@@ -61,22 +62,29 @@ const OrderPage = () => {
         </div>
       ) : (
         <>
+          {/* Mobile */}
           <div className="block lg:hidden space-y-4">
-            {activeOrders.map((order) => (
-              <div
-                key={order.orderNumber}
+            {activeOrders.map((order, idx) => (
+              <OrderCard
+                key={order.id ?? idx} 
+                nomor={order.nomor}
+                nama={order.nama}
+                no_hp={order.no_hp}
+                tanggal_bayar={order.tanggal_bayar}
+                total_harga={order.total_harga}
+                metode_bayar={order.metode_bayar}
+                tipe_pengantaran={order.tipe_pengantaran}
+                status={order.status}
                 onClick={() =>
-                  navigate(`/OrderDetailPage/${order.orderNumber}`, {
+                  navigate(`/OrderDetailPage/${order.id}`, {
                     state: { from: "order" },
                   })
                 }
-                className="cursor-pointer active:scale-[0.98] transition-transform duration-150"
-              >
-                <OrderCard {...order} />
-              </div>
+              />
             ))}
           </div>
 
+          {/* Desktop */}
           <div className="hidden lg:block">
             <Table
               columns={columns}
@@ -88,7 +96,7 @@ const OrderPage = () => {
                   </div>
                 ),
                 "Nama Pelanggan": (row) => (
-                  <span className="font-bold uppercase">
+                  <span className="font-bold uppercase text-base">
                     {row["Nama Pelanggan"]}
                   </span>
                 ),
@@ -102,31 +110,15 @@ const OrderPage = () => {
                     {row.Harga}
                   </span>
                 ),
-                "Status Pesanan": (row) => {
-                  const status =
-                    row["Status Pesanan"] === "Sudah Dikirim"
-                      ? "Pesanan Diproses"
-                      : row["Status Pesanan"];
-
-                  return (
-                    <span
-                      className={`font-semibold text-base ${
-                        row["Status Pesanan"] === "Menunggu Diproses"
-                          ? "text-[#005B96]"
-                          : row["Status Pesanan"] === "Pesanan diproses" ||
-                            row["Status Pesanan"] === "Sudah Dikirim"
-                          ? "text-green-600"
-                          : "text-[#005B96]"
-                      }`}
-                    >
-                      {status}
-                    </span>
-                  );
-                },
+                "Status Pesanan": (row) => (
+                  <span className="font-semibold text-base text-[#005B96]">
+                    {row["Status Pesanan"]}
+                  </span>
+                ),
                 Detail: (row) => (
                   <button
                     onClick={() =>
-                      navigate(`/OrderDetailPage/${row.Detail}`, {
+                      navigate(`/OrderDetailPage/${row.id}`, {
                         state: { from: "order" },
                       })
                     }
