@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { IoMdEye } from "react-icons/io";
 import OrderCard from "../components/Order/OrderCard";
 import Table from "../components/Table";
+import Pagination from "../components/Pagination"; 
 import { Pesanan } from "../services/Pesanan";
 
 const columns = [
@@ -14,14 +15,17 @@ const columns = [
   "Detail",
 ];
 
+const ITEMS_PER_PAGE = 5; // Jumlah item per halaman
+
 const OrderPage = () => {
   const navigate = useNavigate();
   const [orderList, setOrderList] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // State untuk halaman saat ini
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("token"); 
+        const token = localStorage.getItem("token");
         if (!token) return;
 
         const data = await Pesanan.getPesananMasuk(token);
@@ -38,8 +42,10 @@ const OrderPage = () => {
     return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
+  // Filter pesanan yang aktif
   const activeOrders = orderList.filter((order) => order.status !== "done");
 
+  // Transformasi data untuk tabel
   const transformedData = activeOrders.map((order) => ({
     No: order.nomor,
     "Nama Pelanggan": order.nama,
@@ -48,6 +54,17 @@ const OrderPage = () => {
     "Status Pesanan": order.status,
     id: order.id,
   }));
+
+  // Pagination 
+  const totalPages = Math.ceil(transformedData.length / ITEMS_PER_PAGE);
+  const paginatedData = transformedData.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="p-4 overflow-y-auto h-full mt-15 space-y-4">
@@ -66,7 +83,7 @@ const OrderPage = () => {
           <div className="block lg:hidden space-y-4">
             {activeOrders.map((order, idx) => (
               <OrderCard
-                key={order.id ?? idx} 
+                key={order.id ?? idx}
                 nomor={order.nomor}
                 nama={order.nama}
                 no_hp={order.no_hp}
@@ -88,7 +105,7 @@ const OrderPage = () => {
           <div className="hidden lg:block">
             <Table
               columns={columns}
-              data={transformedData}
+              data={paginatedData} 
               customRender={{
                 No: (row) => (
                   <div className="bg-gray-200 text-gray-800 text-sm rounded px-2 py-1 inline-block font-semibold">
@@ -129,6 +146,11 @@ const OrderPage = () => {
                   </button>
                 ),
               }}
+            />
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
             />
           </div>
         </>

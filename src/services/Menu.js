@@ -10,7 +10,7 @@ export const Menu = {
 
     return res.data.map((item) => ({
       ...item,
-      id: item.id || item._id, // sesuaikan dengan backend
+      id: item.id || item._id,
       foto_menu_full: item.foto_menu
         ? `${API_URL}/uploads/${item.foto_menu}`
         : "/images/menudefault.jpg",
@@ -18,11 +18,11 @@ export const Menu = {
   },
 
   getMenuById: async (id, token) => {
-    const res = await axios.get(`${API_URL}/api/menu/${id}`, {
+    const res = await axios.get(`${API_URL}/api/menu/seller/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const item = res.data; // <-- sesuai backend
+    const item = res.data;
     return {
       ...item,
       id: item.id || item._id,
@@ -60,7 +60,7 @@ export const Menu = {
       { headers }
     );
 
-    const item = res.data.data || res.data; // <-- fallback jika backend langsung row
+    const item = res.data.data || res.data;
     return {
       ...item,
       id: item.id || item._id,
@@ -75,5 +75,28 @@ export const Menu = {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
+  },
+
+  getMenusPaginated: async (token, page, limit) => {
+    const res = await axios.get(`${API_URL}/api/menu/paginated`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        page: page,
+        limit: limit,
+      },
+    });
+
+    const transformedData = res.data.data.map((item) => ({
+      ...item,
+      id: item.id || item._id,
+      foto_menu_full: item.foto_menu
+        ? `${API_URL}/uploads/${item.foto_menu}`
+        : "/images/menudefault.jpg",
+    }));
+
+    return {
+      data: transformedData,
+      total: res.data.total,
+    };
   },
 };

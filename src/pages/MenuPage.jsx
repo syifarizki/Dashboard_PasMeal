@@ -6,7 +6,10 @@ import PrimaryButton from "../components/Button/PrimaryButton";
 import MenuDetail from "../components/Menu/MenuDetail";
 import Table from "../components/Table";
 import ToggleSwitch from "../components/Input/ToggleSwitch";
+import Pagination from "../components/Pagination";
 import { Menu } from "../services/Menu";
+
+const ITEMS_PER_PAGE = 5;
 
 const MenuPage = () => {
   const navigate = useNavigate();
@@ -16,24 +19,25 @@ const MenuPage = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0); 
 
   // Load menu dari API
   const loadMenus = useCallback(async () => {
     try {
-      const data = await Menu.getMenus(token);
-      if (Array.isArray(data)) {
-        if (location.state?.newMenu) {
-          const exists = data.find((m) => m.id === location.state.newMenu.id);
-          if (!exists) setMenuItems([location.state.newMenu, ...data]);
-          else setMenuItems(data);
-        } else {
-          setMenuItems(data);
-        }
+      const response = await Menu.getMenusPaginated(
+        token,
+        currentPage,
+        ITEMS_PER_PAGE
+      );
+      if (Array.isArray(response.data)) {
+        setMenuItems(response.data);
+        setTotalItems(response.total); 
       }
     } catch (error) {
       console.error("Gagal mengambil menu:", error);
     }
-  }, [token, location.state?.newMenu]);
+  }, [token, currentPage]); 
 
   useEffect(() => {
     loadMenus();
@@ -49,6 +53,7 @@ const MenuPage = () => {
   // Hapus menu
   const handleDelete = (id) => {
     setMenuItems((prev) => prev.filter((m) => m.id !== id));
+    setTotalItems((prev) => prev - 1); // Kurangi total item
     setSelectedMenu(null);
     setSuccessMessage("Berhasil menghapus menu");
     setTimeout(() => setSuccessMessage(""), 3000);
@@ -74,10 +79,17 @@ const MenuPage = () => {
     }
   };
 
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const formatPrice = (price) =>
     price !== undefined && price !== null
       ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
       : "";
+
+  // Pagination
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   const columns = ["Nama Menu", "Harga", "Status Stok", "Aksi"];
   const customRender = {
@@ -93,7 +105,9 @@ const MenuPage = () => {
         </span>
       </div>
     ),
-    Harga: (item) => <span className="text-base">Rp. {formatPrice(item.harga)}</span>,
+    Harga: (item) => (
+      <span className="text-base">Rp. {formatPrice(item.harga)}</span>
+    ),
     "Status Stok": (item) => (
       <div className="ml-6">
         <ToggleSwitch
@@ -113,14 +127,14 @@ const MenuPage = () => {
   };
 
   return (
-    <div className="flex flex-col mt-20 items-center min-h-[60vh]">
+    <div className="flex flex-col mt-20 items-center min-h-[60vh] w-full px-4">
       {successMessage && (
         <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg">
           {successMessage}
         </div>
       )}
 
-      {menuItems.length === 0 ? (
+      {menuItems.length === 0 && totalItems === 0 ? (
         <div className="flex flex-col items-center text-center mt-10 px-6">
           <img
             src="/images/empty.png"
@@ -140,7 +154,7 @@ const MenuPage = () => {
           <div className="w-full max-w-2xl border border-gray-300 rounded-xl overflow-hidden md:hidden">
             {menuItems.map((item, index) => (
               <div
-                key={item.id || index} 
+                key={item.id || index}
                 onClick={() => setSelectedMenu(item)}
                 className={`cursor-pointer flex items-center bg-white p-4 hover:bg-gray-50 transition-colors ${
                   index !== menuItems.length - 1
@@ -173,9 +187,17 @@ const MenuPage = () => {
               rowKey="id"
             />
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
 
+      {/* Tambah Menu Button */}
       <div className="fixed bottom-6 inset-x-0 flex justify-center px-8 z-50 lg:ml-[256px] lg:w-[calc(100%-256px)]">
         <div className="w-full max-w-6xl">
           <PrimaryButton
@@ -183,7 +205,7 @@ const MenuPage = () => {
               <div className="flex items-center justify-center gap-2">
                 <HiPlus className="h-5 w-5" />
                 <span>
-                  {menuItems.length === 0
+                  {menuItems.length === 0 && totalItems === 0
                     ? "Buat Menu Baru"
                     : "Tambah Menu Baru"}
                 </span>

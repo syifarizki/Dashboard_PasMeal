@@ -53,12 +53,10 @@ function App() {
           <Route path="MenuPage" element={<MenuPage />} />
           <Route path="OrderPage" element={<OrderPage />} />
           <Route path="OrderHistoryPage" element={<OrderHistoryPage />} />
-         <Route path="/MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
+          <Route path="/MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
           <Route path="AddMenuPage" element={<AddMenuPage />} />
-          <Route
-            path="/OrderDetailPage/:orderNumber"
-            element={<OrderDetailPage />}
-          />
+          <Route path="/OrderDetailPage/:id" element={<OrderDetailPage />} />
+
           <Route path="ProfilePage" element={<ProfilePage />} />
         </Route>
       </Routes>
