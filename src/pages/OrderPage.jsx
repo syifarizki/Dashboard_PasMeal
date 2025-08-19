@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom"; 
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { IoMdEye } from "react-icons/io";
 import OrderCard from "../components/Order/OrderCard";
 import Table from "../components/Table";
 import Pagination from "../components/Pagination";
 import { Pesanan } from "../services/Pesanan";
 
-// Komponen Loading dan Error sederhana
 const LoadingSpinner = () => (
   <div className="text-center p-10">Memuat pesanan...</div>
 );
@@ -23,92 +22,93 @@ const columns = [
   "Detail",
 ];
 
-const ITEMS_PER_PAGE = 5;
-
 const OrderPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); 
+  const [searchParams] = useSearchParams();
 
   const [orderList, setOrderList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
+  const fetchOrders = useCallback(
+    async (page = 1) => {
       setIsLoading(true);
       setError("");
 
-      // Ambil parameter dari URL
       const kiosIdFromUrl = searchParams.get("kiosId");
       const tokenFromUrl = searchParams.get("token");
 
       try {
-        let data;
-        // --- LOGIKA UTAMA ---
+        let response;
         if (kiosIdFromUrl && tokenFromUrl) {
-          // Skenario 1: Akses via link WA dengan token sementara
-          console.log("Mengakses via token sementara...");
-          data = await Pesanan.verifyKiosToken(kiosIdFromUrl, tokenFromUrl);
+          response = await Pesanan.verifyKiosToken(kiosIdFromUrl, tokenFromUrl);
         } else {
-          // Skenario 2: Akses normal setelah login
-          console.log("Mengakses via login normal...");
           const token = localStorage.getItem("token");
           if (!token) {
-            // Jika tidak ada token sama sekali, navigasi ke login
             navigate("/LoginPage");
             return;
           }
-          const response = await Pesanan.getPesananMasuk(token);
-          data = response.data || []; 
+          response = await Pesanan.getPesananMasuk(token, page);
         }
 
-        const formattedData = data.map((order, index) => ({
-          ...order,
-          nomor: order.nomor_antrian || index + 1, 
-          status: order.status_label || order.status, 
-        }));
+        // backend sudah return { page, totalPages, data }
+        const { data = [], totalPages = 1 } = response;
+
+        const formattedData = (Array.isArray(data) ? data : []).map(
+          (order, index) => ({
+            ...order,
+            id: order.id,
+            nomor: order.nomor_antrian || index + 1,
+            nama: order.nama || order.nama_pemesan || "Tidak diketahui",
+            no_hp: order.no_hp || "-",
+            created_at: order.created_at || new Date().toISOString(),
+            tanggal_bayar: order.tanggal_bayar || null,
+            total_harga: Number(order.total_harga) || 0,
+            metode_bayar: order.metode_bayar || "QRIS",
+            tipe_pengantaran: order.tipe_pengantaran || "-",
+            status: order.status_label || order.status || "Pending",
+          })
+        );
 
         setOrderList(formattedData);
+        setTotalPages(totalPages);
       } catch (err) {
         console.error("Gagal ambil pesanan masuk:", err);
         setError(err.response?.data?.message || "Gagal memuat data pesanan.");
       } finally {
         setIsLoading(false);
       }
-    };
+    },
+    [searchParams, navigate] // dependency untuk useCallback
+  );
 
-    fetchOrders();
+  useEffect(() => {
+    fetchOrders(currentPage);
 
     const handleFocus = () => {
       if (!searchParams.get("token")) {
-        fetchOrders();
+        fetchOrders(currentPage);
       }
     };
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  }, [searchParams, navigate]);
+  }, [searchParams, currentPage, fetchOrders]);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
-  
   const transformedData = orderList.map((order) => ({
     No: order.nomor,
-    "Nama Pelanggan": order.nama || order.nama_pemesan,
+    "Nama Pelanggan": order.nama,
     Tanggal:
       order.tanggal_bayar || new Date(order.created_at).toLocaleString("id-ID"),
-    Harga: `Rp. ${Number(order.total_harga).toLocaleString("id-ID")}`,
+    Harga: `Rp. ${order.total_harga.toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
     id: order.id,
+    raw: order, // simpan original buat mobile
   }));
-
-  // Pagination 
-  const totalPages = Math.ceil(transformedData.length / ITEMS_PER_PAGE);
-  const paginatedData = transformedData.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -129,21 +129,21 @@ const OrderPage = () => {
         <>
           {/* Mobile */}
           <div className="block lg:hidden space-y-4">
-            {orderList.map((order) => (
+            {transformedData.map((row) => (
               <OrderCard
-                key={order.id}
-                nomor={order.nomor}
-                nama={order.nama || order.nama_pemesan}
-                no_hp={order.no_hp}
+                key={row.id}
+                nomor={row.raw.nomor}
+                nama={row.raw.nama}
+                no_hp={row.raw.no_hp}
                 tanggal_bayar={
-                  order.tanggal_bayar ||
-                  new Date(order.created_at).toLocaleString("id-ID")
+                  row.raw.tanggal_bayar ||
+                  new Date(row.raw.created_at).toLocaleString("id-ID")
                 }
-                total_harga={order.total_harga}
-                metode_bayar={order.metode_bayar || "QRIS"}
-                tipe_pengantaran={order.tipe_pengantaran}
-                status={order.status}
-                onClick={() => navigate(`/OrderDetailPage/${order.id}`)}
+                total_harga={row.raw.total_harga}
+                metode_bayar={row.raw.metode_bayar}
+                tipe_pengantaran={row.raw.tipe_pengantaran}
+                status={row.raw.status}
+                onClick={() => navigate(`/OrderDetailPage/${row.id}`)}
               />
             ))}
           </div>
@@ -152,7 +152,7 @@ const OrderPage = () => {
           <div className="hidden lg:block">
             <Table
               columns={columns}
-              data={paginatedData}
+              data={transformedData}
               customRender={{
                 No: (row) => (
                   <div className="bg-gray-200 text-gray-800 text-sm rounded px-2 py-1 inline-block font-semibold">
@@ -190,6 +190,10 @@ const OrderPage = () => {
                 ),
               }}
             />
+          </div>
+
+          {/* Pagination tampil di semua layar */}
+          <div className="flex justify-center mt-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

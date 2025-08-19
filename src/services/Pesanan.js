@@ -2,11 +2,12 @@ import axios from "axios";
 import { API_URL } from "./Api";
 
 export const Pesanan = {
-  getPesananMasuk: async (token) => {
-    const res = await axios.get(`${API_URL}/api/pesanan-masuk`, {
+  // Ambil daftar pesanan masuk (penjual) pakai pagination
+  getPesananMasuk: async (token, page = 1) => {
+    const res = await axios.get(`${API_URL}/api/pesanan-masuk?page=${page}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    // Mengembalikan data dan informasi paginasi jika ada dari backend
+    // Backend sudah return { page, totalPages, limit, total, data }
     return res.data;
   },
 
@@ -24,12 +25,11 @@ export const Pesanan = {
     return res.data;
   },
 
-  // 👇 TAMBAHKAN FUNGSI BARU INI
+  // Token sementara (via WA link)
   verifyKiosToken: async (kiosId, token) => {
     const res = await axios.get(`${API_URL}/api/kios/verify-token`, {
       params: { kiosId, token },
     });
-    // Backend mengembalikan { message: '...', pesanan: [...] }
-    return res.data.pesanan || []; // Langsung kembalikan array pesanannya
+    return res.data.pesanan || [];
   },
 };
