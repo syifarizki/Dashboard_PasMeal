@@ -96,10 +96,19 @@ const MenuPage = () => {
     "Nama Menu": (item) => (
       <div className="flex items-center gap-3">
         <img
-          src={item.foto_menu_full || "/images/menudefault.jpg"}
-          alt={item.nama_menu}
-          className="w-14 h-14 rounded-xl object-cover border border-gray-200"
+          src={
+            item.foto_menu
+              ? `${import.meta.env.VITE_API_URL}/uploads/${item.foto_menu}`
+              : "/images/menudefault.jpg"
+          }
+          alt={item.nama_menu || "Menu"}
+          className="w-14 h-14 object-cover rounded-xl border border-gray-200"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/images/menudefault.jpg";
+          }}
         />
+
         <span className="font-semibold text-lg text-black">
           {item.nama_menu}
         </span>
@@ -163,10 +172,21 @@ const MenuPage = () => {
                 }`}
               >
                 <img
-                  src={item.foto_menu_full || "/images/menudefault.jpg"}
-                  alt={item.nama_menu}
+                  src={
+                    item.foto_menu
+                      ? `${import.meta.env.VITE_API_URL}/uploads/${
+                          item.foto_menu
+                        }`
+                      : "/images/menudefault.jpg"
+                  }
+                  alt={item.nama_menu || "Menu"}
                   className="w-14 h-14 object-cover rounded-xl border border-gray-200"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/images/menudefault.jpg";
+                  }}
                 />
+
                 <div className="ml-4 flex-1">
                   <h2 className="text-lg font-bold text-gray-900">
                     {item.nama_menu}
