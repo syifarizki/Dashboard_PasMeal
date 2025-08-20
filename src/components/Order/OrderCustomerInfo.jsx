@@ -10,7 +10,7 @@ const OrderCustomerInfo = ({ order, showDetail, setShowDetail }) => {
 
   return (
     <div className="lg:w-1/2 bg-white p-4 border border-gray-300 rounded-xl lg:rounded-none lg:border-0">
-      {/* --- Tampilan Mobile --- */}
+      {/* Mobile */}
       <div className="block lg:hidden">
         <div className="flex justify-between items-center">
           <div>
@@ -36,7 +36,7 @@ const OrderCustomerInfo = ({ order, showDetail, setShowDetail }) => {
             </div>
           </div>
           {showDetail && (
-            <div className="flex justify-between pt-2 text-lg font-medium">
+            <div className="flex justify-between pt-2 text-base font-medium">
               <span>No. Telepon</span>
               <span>{order.no_hp}</span>
             </div>
@@ -58,7 +58,7 @@ const OrderCustomerInfo = ({ order, showDetail, setShowDetail }) => {
         </button>
       </div>
 
-      {/* --- Tampilan Desktop --- */}
+      {/*  Desktop  */}
       <div className="hidden lg:block space-y-2 text-lg">
         <div className="flex justify-between font-medium pb-0.5">
           <span>Nomor Antrian</span>

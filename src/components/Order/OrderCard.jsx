@@ -2,8 +2,27 @@ import { FaCheckCircle } from "react-icons/fa";
 import { PiMoneyBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 
+// untuk warna status pesanan
+const getStatusStyles = (status) => {
+  const statusLower = status?.toLowerCase() || "";
+  switch (statusLower) {
+    case "pesanan diproses":
+      return " text-[#42A444]";
+    case "siap diambil":
+    case "pesanan diantar":
+      return " text-[#42A444]";
+    case "menunggu diproses":
+      return " text-[#005B96]";
+    case "selesai":
+    case "pesanan selesai":
+      return " text-[#005B96]";
+    default:
+      return " text-[#005B96]";
+  }
+};
+
 const OrderCard = ({
-  id, 
+  id,
   nomor,
   nama,
   no_hp,
@@ -16,7 +35,6 @@ const OrderCard = ({
   const navigate = useNavigate();
 
   const handleClick = () => {
- 
     navigate(`/OrderDetailPage/${id}`);
   };
 
@@ -28,7 +46,7 @@ const OrderCard = ({
       {/* Header */}
       <div className="flex justify-between items-center px-4 pt-3 pb-2">
         <div className="flex items-center gap-2">
-          <span className="bg-gray-300 text-xs px-2 py-1 rounded font-semibold text-gray-700">
+          <span className="bg-gray-200 text-xs px-2 py-1 rounded font-semibold text-gray-700">
             #{nomor}
           </span>
           <span className="text-orange-500 text-sm font-medium">
@@ -40,34 +58,34 @@ const OrderCard = ({
         </span>
       </div>
 
-      <div className="w-full h-[1px] bg-gray-300" />
+      <div className="w-full h-[1px] bg-gray-200" />
 
       {/* Body */}
-      <div className="px-4 py-2">
+      <div className="px-4 py-3">
         <div className="flex justify-between items-start">
           <div>
-            <p className="font-bold text-base">{nama}</p>
+            <p className="font-bold text-base uppercase">{nama}</p>
             <p className="text-sm text-gray-600 mt-1">{no_hp}</p>
           </div>
-
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 text-gray-600">
             <PiMoneyBold className="text-lg" />
-            <span className="text-sm font-medium lowercase">
+            <span className="text-sm font-medium uppercase">
               {metode_bayar}
             </span>
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-2">
+        <div className="flex justify-between items-center pt-3 mt-2">
           <span className="font-bold text-base">
             Rp {Number(total_harga || 0).toLocaleString("id-ID")}
           </span>
-          <div className="flex items-center gap-1 text-sm text-[#005B96] font-medium">
-            {status === "Selesai" && (
-              <FaCheckCircle className="text-base text-[#005B96]" />
-            )}
+          <span
+            className={`px-3 py-1 text-sm rounded-full font-semibold inline-block ${getStatusStyles(
+              status
+            )}`}
+          >
             {status}
-          </div>
+          </span>
         </div>
       </div>
     </div>

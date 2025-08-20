@@ -7,10 +7,10 @@ import Pagination from "../components/Pagination";
 import { Pesanan } from "../services/Pesanan";
 
 const LoadingSpinner = () => (
-  <div className="text-center p-10">Memuat pesanan...</div>
+  <div className="text-center p-15">Memuat pesanan...</div>
 );
 const ErrorMessage = ({ message }) => (
-  <div className="text-center text-red-500 p-10">{message}</div>
+  <div className="text-center text-red-500 p-15">{message}</div>
 );
 
 const columns = [
@@ -22,10 +22,28 @@ const columns = [
   "Detail",
 ];
 
+// untuk warna status pesanan
+const getStatusStyles = (status) => {
+  const statusLower = status?.toLowerCase() || "";
+  switch (statusLower) {
+    case "pesanan diproses":
+      return " text-[#42A444]";
+    case "siap diambil":
+    case "pesanan diantar":
+      return " text-[#42A444]";
+    case "menunggu diproses":
+      return " text-[#005B96]";
+    case "selesai":
+    case "pesanan selesai":
+      return " text-[#005B96]";
+    default:
+      return " text-[#005B96]";
+  }
+};
+
 const OrderPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const [orderList, setOrderList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,10 +54,8 @@ const OrderPage = () => {
     async (page = 1) => {
       setIsLoading(true);
       setError("");
-
       const kiosIdFromUrl = searchParams.get("kiosId");
       const tokenFromUrl = searchParams.get("token");
-
       try {
         let response;
         if (kiosIdFromUrl && tokenFromUrl) {
@@ -53,7 +69,8 @@ const OrderPage = () => {
           response = await Pesanan.getPesananMasuk(token, page);
         }
 
-        const { data = [], totalPages = 1 } = response;
+        const data = kiosIdFromUrl ? response : response.data;
+        const pages = kiosIdFromUrl ? 1 : response.totalPages;
 
         const formattedData = (Array.isArray(data) ? data : []).map(
           (order, index) => ({
@@ -70,9 +87,8 @@ const OrderPage = () => {
             status: order.status_label || order.status || "Pending",
           })
         );
-
         setOrderList(formattedData);
-        setTotalPages(totalPages);
+        setTotalPages(pages);
       } catch (err) {
         console.error("Gagal ambil pesanan masuk:", err);
         setError(err.response?.data?.message || "Gagal memuat data pesanan.");
@@ -85,7 +101,6 @@ const OrderPage = () => {
 
   useEffect(() => {
     fetchOrders(currentPage);
-
     const handleFocus = () => {
       if (!searchParams.get("token")) {
         fetchOrders(currentPage);
@@ -106,7 +121,7 @@ const OrderPage = () => {
     Harga: `Rp. ${order.total_harga.toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
     id: order.id,
-    raw: order,
+    raw: order, 
   }));
 
   const handlePageChange = (page) => {
@@ -128,22 +143,21 @@ const OrderPage = () => {
         <>
           {/* Mobile */}
           <div className="block lg:hidden space-y-4">
-            {transformedData.map((row) => (
+            {orderList.map((order) => (
               <OrderCard
-                key={row.id}
-                id={row.id}
-                nomor={row.raw.nomor}
-                nama={row.raw.nama}
-                no_hp={row.raw.no_hp}
+                key={order.id}
+                id={order.id}
+                nomor={order.nomor}
+                nama={order.nama}
+                no_hp={order.no_hp}
                 tanggal_bayar={
-                  row.raw.tanggal_bayar ||
-                  new Date(row.raw.created_at).toLocaleString("id-ID")
+                  order.tanggal_bayar ||
+                  new Date(order.created_at).toLocaleString("id-ID")
                 }
-                total_harga={row.raw.total_harga}
-                metode_bayar={row.raw.metode_bayar}
-                tipe_pengantaran={row.raw.tipe_pengantaran}
-                status={row.raw.status}
-                onClick={() => navigate(`/OrderDetailPage/${row.id}`)}
+                total_harga={order.total_harga}
+                metode_bayar={order.metode_bayar}
+                tipe_pengantaran={order.tipe_pengantaran}
+                status={order.status}
               />
             ))}
           </div>
@@ -175,7 +189,11 @@ const OrderPage = () => {
                   </span>
                 ),
                 "Status Pesanan": (row) => (
-                  <span className="font-semibold text-base text-[#005B96]">
+                  <span
+                    className={`px-3 py-1 text-base rounded-full font-semibold inline-block ${getStatusStyles(
+                      row["Status Pesanan"]
+                    )}`}
+                  >
                     {row["Status Pesanan"]}
                   </span>
                 ),
@@ -183,7 +201,6 @@ const OrderPage = () => {
                   <button
                     onClick={() => navigate(`/OrderDetailPage/${row.id}`)}
                     className="text-primary cursor-pointer"
-                    title="Lihat Detail"
                   >
                     <IoMdEye className="w-7 h-7" />
                   </button>
@@ -193,13 +210,15 @@ const OrderPage = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-center mt-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </>
       )}
     </div>

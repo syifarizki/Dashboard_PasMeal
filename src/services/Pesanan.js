@@ -25,8 +25,8 @@ export const Pesanan = {
 
   updateStatusPesanan: async (id, newStatusKey, token) => {
     const res = await axios.patch(
-      `${API_URL}/api/pesanan-masuk/${id}/status`,
-      { status: newStatusKey }, 
+      `${API_URL}/api/pesanan/${id}/status`,
+      { status: newStatusKey },
       {
         headers: { Authorization: `Bearer ${token}` },
       }
