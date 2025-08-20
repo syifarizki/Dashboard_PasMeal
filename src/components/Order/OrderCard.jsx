@@ -35,7 +35,7 @@ const OrderCard = ({
             {tanggal_bayar}
           </span>
         </div>
-        <span className="text-gray-700 text-sm font-medium">
+        <span className="text-gray-700 text-xs font-medium">
           {tipe_pengantaran}
         </span>
       </div>

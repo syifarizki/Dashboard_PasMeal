@@ -53,14 +53,13 @@ const OrderPage = () => {
           response = await Pesanan.getPesananMasuk(token, page);
         }
 
-        // backend sudah return { page, totalPages, data }
         const { data = [], totalPages = 1 } = response;
 
         const formattedData = (Array.isArray(data) ? data : []).map(
           (order, index) => ({
             ...order,
             id: order.id,
-            nomor: order.nomor_antrian || index + 1,
+            nomor: order.nomor_antrian || (page - 1) * 5 + index + 1,
             nama: order.nama || order.nama_pemesan || "Tidak diketahui",
             no_hp: order.no_hp || "-",
             created_at: order.created_at || new Date().toISOString(),
@@ -81,7 +80,7 @@ const OrderPage = () => {
         setIsLoading(false);
       }
     },
-    [searchParams, navigate] // dependency untuk useCallback
+    [searchParams, navigate]
   );
 
   useEffect(() => {
@@ -107,7 +106,7 @@ const OrderPage = () => {
     Harga: `Rp. ${order.total_harga.toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
     id: order.id,
-    raw: order, // simpan original buat mobile
+    raw: order,
   }));
 
   const handlePageChange = (page) => {
@@ -193,7 +192,7 @@ const OrderPage = () => {
             />
           </div>
 
-          {/* Pagination tampil di semua layar */}
+          {/* Pagination */}
           <div className="flex justify-center mt-4">
             <Pagination
               currentPage={currentPage}

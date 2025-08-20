@@ -1,5 +1,3 @@
-// src/components/Order/OrderDetail.jsx
-
 const OrderDetails = ({ order }) => {
   if (!order) {
     return (
@@ -23,15 +21,12 @@ const OrderDetails = ({ order }) => {
     <div className="lg:w-1/2 bg-white p-4 border-gray-300 rounded-xl lg:rounded-none lg:border-0">
       <div className="text-lg font-bold mb-2">Rincian Pesanan</div>
       <div className="mb-4">
-        {/* Menggunakan 'order.menu' dari backend */}
         {order.menu?.map((item, i) => (
           <div
             key={i}
             className="flex justify-between text-lg font-semibold mb-1"
           >
-            {/* Menampilkan 'nama_menu' dan 'jumlah' */}
             <span>{`${item.jumlah} ${item.nama_menu} `}</span>
-            {/* Menghitung dan menampilkan subtotal */}
             <span>{formatRupiah(item.harga * item.jumlah)}</span>
           </div>
         ))}
@@ -41,7 +36,6 @@ const OrderDetails = ({ order }) => {
         <div className="text-sm">
           <span className="font-medium text-lg">Catatan :</span>
           <p className="text-lg font-medium">
-            {/* Menggunakan 'order.catatan' (sudah benar) */}
             {order.catatan || "-"}
           </p>
         </div>
@@ -51,7 +45,6 @@ const OrderDetails = ({ order }) => {
         <div className="flex justify-between font-bold text-lg">
           <span>Total</span>
           <span className="text-lg font-medium">
-            {/* Menggunakan 'order.total_harga' dari backend */}
             {formatRupiah(order.total_harga || 0)}
           </span>
         </div>
