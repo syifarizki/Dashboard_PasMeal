@@ -3,6 +3,7 @@ import { PiMoneyBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 
 const OrderCard = ({
+  id, 
   nomor,
   nama,
   no_hp,
@@ -15,7 +16,8 @@ const OrderCard = ({
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/DetailPesananPage/${nomor}`);
+ 
+    navigate(`/OrderDetailPage/${id}`);
   };
 
   return (
@@ -50,13 +52,15 @@ const OrderCard = ({
 
           <div className="flex items-center gap-1">
             <PiMoneyBold className="text-lg" />
-            <span className="text-sm font-medium lowercase">{metode_bayar}</span>
+            <span className="text-sm font-medium lowercase">
+              {metode_bayar}
+            </span>
           </div>
         </div>
 
         <div className="flex justify-between items-center pt-2">
           <span className="font-bold text-base">
-            {Number(total_harga || 0).toLocaleString("id-ID")}
+            Rp {Number(total_harga || 0).toLocaleString("id-ID")}
           </span>
           <div className="flex items-center gap-1 text-sm text-[#005B96] font-medium">
             {status === "Selesai" && (

@@ -132,6 +132,7 @@ const OrderPage = () => {
             {transformedData.map((row) => (
               <OrderCard
                 key={row.id}
+                id={row.id}
                 nomor={row.raw.nomor}
                 nama={row.raw.nama}
                 no_hp={row.raw.no_hp}

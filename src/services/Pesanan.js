@@ -25,6 +25,18 @@ export const Pesanan = {
     return res.data;
   },
 
+  updateStatusPesanan: async (id, newStatusKey, token) => {
+    const res = await axios.patch(
+      // <-- Menggunakan PATCH
+      `${API_URL}/api/pesanan-masuk/${id}/status`,
+      { status: newStatusKey }, // Body request berisi kunci status
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return res.data;
+  },
+
   // Token sementara (via WA link)
   verifyKiosToken: async (kiosId, token) => {
     const res = await axios.get(`${API_URL}/api/kios/verify-token`, {
