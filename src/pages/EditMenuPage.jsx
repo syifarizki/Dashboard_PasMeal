@@ -109,22 +109,24 @@ const EditMenuPage = () => {
           <ImageUpload image={imagePreview} onImageChange={handleImageUpload} />
         </div>
 
-        <InputText
-          label="Nama Menu"
-          value={menuName}
-          onChange={(e) => setMenuName(e.target.value)}
-        />
-        <InputPrice label="Harga" value={price} onChange={setPrice} />
-        <TextArea
-          label="Deskripsi"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <InputText
-          label="Waktu Penyajian (menit)"
-          value={servingTime}
-          onChange={(e) => setServingTime(e.target.value)}
-        />
+        <div className="space-y-4 mb-10">
+          <InputText
+            label="Nama Menu"
+            value={menuName}
+            onChange={(e) => setMenuName(e.target.value)}
+          />
+          <InputPrice label="Harga" value={price} onChange={setPrice} />
+          <TextArea
+            label="Deskripsi"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <InputText
+            label="Waktu Penyajian (menit)"
+            value={servingTime}
+            onChange={(e) => setServingTime(e.target.value)}
+          />
+        </div>
 
         <div className="fixed bottom-6 inset-x-0 flex justify-center px-10 z-50 lg:ml-[256px] lg:w-[calc(100%-256px)]">
           <div className="w-full max-w-6xl">

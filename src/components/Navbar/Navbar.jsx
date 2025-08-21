@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from "react";
 import AvatarDropdown from "./AvatarDropdown";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom"; // ⬅️ pakai useParams
 import { FaChevronLeft } from "react-icons/fa";
 import { Penjual } from "../../services/Penjual";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { type } = useParams(); // ⬅️ ambil type dari route
   const [namaUser, setNamaUser] = useState("User");
 
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-
       const res = await Penjual.getProfile(token);
-      if (res?.data?.nama) {
-        setNamaUser(res.data.nama);
-      } else if (res?.nama) {
-        setNamaUser(res.nama);
-      } else {
-        setNamaUser("User");
-      }
+      setNamaUser(res?.data?.nama || res?.nama || "User");
     } catch (error) {
       console.error("Gagal memuat profil penjual:", error);
       setNamaUser("User");
@@ -29,11 +23,9 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    fetchUser(); // fetch saat pertama kali load
-
-    // Refresh nama user secara berkala setiap 1 detik
+    fetchUser();
     const interval = setInterval(fetchUser, 1000);
-    return () => clearInterval(interval); // bersihkan interval saat unmount
+    return () => clearInterval(interval);
   }, []);
 
   const getPageInfo = () => {
@@ -47,13 +39,9 @@ const Navbar = () => {
     }
 
     if (location.pathname.startsWith("/OrderDetailPage")) {
-      const from = location.state?.from;
-      const title =
-        from === "history" ? "Detail Riwayat Pesanan" : "Detail Pesanan";
-
       return {
-        title,
-        className: "text-primary font-extrabold text-xl md:text-3xl",
+        title: type === "riwayat" ? "Detail Riwayat Pesanan" : "Detail Pesanan", // ⬅️ pakai params
+        className: "text-primary font-extrabold text-lg md:text-3xl",
         showBackButton: true,
         centered: true,
       };
@@ -63,28 +51,28 @@ const Navbar = () => {
       case "/MenuPage":
         return {
           title: "Daftar Menu",
-          className: "text-primary font-extrabold text-xl md:text-3xl",
+          className: "text-primary font-extrabold text-lg md:text-3xl",
           showBackButton: false,
           centered: true,
         };
       case "/OrderPage":
         return {
           title: "Pesanan",
-          className: "text-primary font-extrabold text-xl md:text-3xl",
+          className: "text-primary font-extrabold text-lg md:text-3xl",
           showBackButton: false,
           centered: true,
         };
       case "/OrderHistoryPage":
         return {
           title: "Riwayat Pesanan",
-          className: "text-primary font-extrabold text-xl md:text-3xl",
+          className: "text-primary font-extrabold text-lg md:text-3xl",
           showBackButton: false,
           centered: true,
         };
       case "/AddMenuPage":
         return {
           title: "Buat Menu Baru",
-          className: "text-primary font-extrabold text-xl md:text-3xl",
+          className: "text-primary font-extrabold text-lg md:text-3xl",
           showBackButton: true,
           centered: true,
         };
@@ -121,7 +109,6 @@ const Navbar = () => {
           {title}
         </h1>
       </div>
-
       <div className="ml-auto">
         <AvatarDropdown />
       </div>

@@ -24,7 +24,7 @@ const OrderDetails = ({ order }) => {
         {order.menu?.map((item, i) => (
           <div
             key={i}
-            className="flex justify-between text-lg font-semibold mb-1"
+            className="flex justify-between text-base md:text-lg font-semibold mb-1"
           >
             <span>{`${item.jumlah} ${item.nama_menu} `}</span>
             <span>{formatRupiah(item.harga * item.jumlah)}</span>
@@ -34,8 +34,8 @@ const OrderDetails = ({ order }) => {
         <hr className="my-2" />
 
         <div className="text-sm">
-          <span className="font-medium text-lg">Catatan :</span>
-          <p className="text-lg font-medium">
+          <span className="font-medium text-base md:text-lg">Catatan :</span>
+          <p className="text-base md:text-lg ">
             {order.catatan || "-"}
           </p>
         </div>

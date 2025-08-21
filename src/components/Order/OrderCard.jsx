@@ -1,13 +1,11 @@
-import { FaCheckCircle } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa";
 import { PiMoneyBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 
-// untuk warna status pesanan
 const getStatusStyles = (status) => {
   const statusLower = status?.toLowerCase() || "";
   switch (statusLower) {
     case "pesanan diproses":
-      return " text-[#42A444]";
     case "siap diambil":
     case "pesanan diantar":
       return " text-[#42A444]";
@@ -34,9 +32,21 @@ const OrderCard = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    navigate(`/OrderDetailPage/${id}`);
-  };
+const handleClick = () => {
+  const isHistory = status?.toLowerCase().includes("selesai");
+
+  if (isHistory) {
+    navigate(`/OrderDetailPage/riwayat/${id}`, {
+      state: { from: "history" },
+    });
+  } else {
+    navigate(`/OrderDetailPage/masuk/${id}`, {
+      state: { from: "orders" },
+    });
+  }
+};
+
+
 
   return (
     <div
@@ -53,8 +63,8 @@ const OrderCard = ({
             {tanggal_bayar}
           </span>
         </div>
-        <span className="text-gray-700 text-xs font-medium">
-          {tipe_pengantaran}
+        <span className="text-gray-700 text-xs font-medium capitalize">
+          {tipe_pengantaran?.replace("_", " ")}
         </span>
       </div>
 
@@ -64,12 +74,12 @@ const OrderCard = ({
       <div className="px-4 py-3">
         <div className="flex justify-between items-start">
           <div>
-            <p className="font-bold text-base uppercase">{nama}</p>
-            <p className="text-sm text-gray-600 mt-1">{no_hp}</p>
+            <p className="font-bold text-sm uppercase">{nama}</p>
+            {no_hp && <p className="text-sm text-black mt-1">{no_hp}</p>}
           </div>
-          <div className="flex items-center gap-1 text-gray-600">
+          <div className="flex items-center gap-1 text-black">
             <PiMoneyBold className="text-lg" />
-            <span className="text-sm font-medium uppercase">
+            <span className="text-sm font-medium lowercase">
               {metode_bayar}
             </span>
           </div>
@@ -79,13 +89,18 @@ const OrderCard = ({
           <span className="font-bold text-base">
             Rp {Number(total_harga || 0).toLocaleString("id-ID")}
           </span>
-          <span
-            className={`px-3 py-1 text-sm rounded-full font-semibold inline-block ${getStatusStyles(
-              status
-            )}`}
-          >
-            {status}
-          </span>
+          <div className="flex items-center gap-2">
+            {status?.toLowerCase() === "pesanan selesai" && (
+              <div className="p-1 rounded-full bg-[#005B96] flex items-center justify-center">
+                <FaCheck className="text-white w-2 h-2" />
+              </div>
+            )}
+            <span
+              className={`text-sm font-semibold ${getStatusStyles(status)}`}
+            >
+              {status}
+            </span>
+          </div>
         </div>
       </div>
     </div>

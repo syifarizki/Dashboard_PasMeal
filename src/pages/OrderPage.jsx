@@ -41,7 +41,7 @@ const getStatusStyles = (status) => {
   }
 };
 
-const OrderPage = () => {
+const OrderPage = ({ type = "masuk" }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [orderList, setOrderList] = useState([]);
@@ -58,15 +58,21 @@ const OrderPage = () => {
       const tokenFromUrl = searchParams.get("token");
       try {
         let response;
+        const token = localStorage.getItem("token");
+
+        if (!token && !tokenFromUrl) {
+          navigate("/LoginPage");
+          return;
+        }
+
         if (kiosIdFromUrl && tokenFromUrl) {
           response = await Pesanan.verifyKiosToken(kiosIdFromUrl, tokenFromUrl);
         } else {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            navigate("/LoginPage");
-            return;
+          if (type === "masuk") {
+            response = await Pesanan.getPesananMasuk(token, page);
+          } else {
+            response = await Pesanan.getRiwayatPesanan(token, page);
           }
-          response = await Pesanan.getPesananMasuk(token, page);
         }
 
         const data = kiosIdFromUrl ? response : response.data;
@@ -76,7 +82,7 @@ const OrderPage = () => {
           (order, index) => ({
             ...order,
             id: order.id,
-            nomor: order.nomor_antrian || (page - 1) * 5 + index + 1,
+            nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
             nama: order.nama || order.nama_pemesan || "Tidak diketahui",
             no_hp: order.no_hp || "-",
             created_at: order.created_at || new Date().toISOString(),
@@ -90,25 +96,18 @@ const OrderPage = () => {
         setOrderList(formattedData);
         setTotalPages(pages);
       } catch (err) {
-        console.error("Gagal ambil pesanan masuk:", err);
+        console.error("Gagal ambil pesanan:", err);
         setError(err.response?.data?.message || "Gagal memuat data pesanan.");
       } finally {
         setIsLoading(false);
       }
     },
-    [searchParams, navigate]
+    [searchParams, navigate, type]
   );
 
   useEffect(() => {
     fetchOrders(currentPage);
-    const handleFocus = () => {
-      if (!searchParams.get("token")) {
-        fetchOrders(currentPage);
-      }
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [searchParams, currentPage, fetchOrders]);
+  }, [currentPage, fetchOrders]);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
@@ -121,12 +120,10 @@ const OrderPage = () => {
     Harga: `Rp. ${order.total_harga.toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
     id: order.id,
-    raw: order, 
+    raw: order,
   }));
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+
 
   return (
     <div className="p-4 overflow-y-auto h-full mt-15 space-y-4">
@@ -144,21 +141,7 @@ const OrderPage = () => {
           {/* Mobile */}
           <div className="block lg:hidden space-y-4">
             {orderList.map((order) => (
-              <OrderCard
-                key={order.id}
-                id={order.id}
-                nomor={order.nomor}
-                nama={order.nama}
-                no_hp={order.no_hp}
-                tanggal_bayar={
-                  order.tanggal_bayar ||
-                  new Date(order.created_at).toLocaleString("id-ID")
-                }
-                total_harga={order.total_harga}
-                metode_bayar={order.metode_bayar}
-                tipe_pengantaran={order.tipe_pengantaran}
-                status={order.status}
-              />
+              <OrderCard key={order.id} {...order} />
             ))}
           </div>
 
@@ -199,7 +182,9 @@ const OrderPage = () => {
                 ),
                 Detail: (row) => (
                   <button
-                    onClick={() => navigate(`/OrderDetailPage/${row.id}`)}
+                    onClick={() =>
+                      navigate(`/OrderDetailPage/${type}/${row.id}`)
+                    }
                     className="text-primary cursor-pointer"
                   >
                     <IoMdEye className="w-7 h-7" />
@@ -210,15 +195,13 @@ const OrderPage = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
+          <div className="flex justify-center mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages || 1} // minimal 1 halaman
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </>
       )}
     </div>

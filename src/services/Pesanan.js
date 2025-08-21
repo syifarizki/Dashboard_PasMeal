@@ -34,6 +34,20 @@ export const Pesanan = {
     return res.data;
   },
 
+  getRiwayatPesanan: async (token, page = 1) => {
+    const res = await axios.get(`${API_URL}/api/pesanan/riwayat?page=${page}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  },
+
+  getDetailRiwayatPesanan: async (id, token) => {
+    const res = await axios.get(`${API_URL}/api/pesanan/riwayat/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  },
+
   verifyKiosToken: async (kiosId, token) => {
     const res = await axios.get(`${API_URL}/api/kios/verify-token`, {
       params: { kiosId, token },

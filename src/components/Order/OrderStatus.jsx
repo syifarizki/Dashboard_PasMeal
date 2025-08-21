@@ -14,6 +14,10 @@ const OrderStatus = ({ order }) => {
   const [sisaWaktu, setSisaWaktu] = useState(0);
 
   const statusLower = status?.toLowerCase() || "";
+
+  // 🔧 Normalisasi tampilan status
+  const displayStatus = statusLower === "selesai" ? "Pesanan Selesai" : status;
+
   const isInProgress =
     statusLower === "pesanan diproses" ||
     statusLower === "pesanan diantar" ||
@@ -35,7 +39,7 @@ const OrderStatus = ({ order }) => {
     const interval = setInterval(hitungSisaWaktu, 1000);
 
     return () => clearInterval(interval);
-  }, [status, estimasi_selesai_at, isInProgress]); 
+  }, [status, estimasi_selesai_at, isInProgress]);
 
   return (
     <div
@@ -51,7 +55,7 @@ const OrderStatus = ({ order }) => {
             <FaCheck className="text-white w-3 h-3" />
           </div>
         )}
-        <span>{status}</span>
+        <span>{displayStatus}</span>
       </span>
 
       {isInProgress && (

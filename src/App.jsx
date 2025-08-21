@@ -25,7 +25,6 @@ import AddMenuPage from "./pages/AddMenuPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ProfilePage from "./pages/AuthPage/ProfilePage";
 
-
 function App() {
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +38,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth Routes */}
         <Route path="/" element={<AuthLayout />}>
           <Route index element={<MainPage />} />
           <Route path="LoginPage" element={<LoginPage />} />
@@ -48,15 +48,22 @@ function App() {
           <Route path="ForgotPassPage" element={<ForgotPassPage />} />
           <Route path="NewPassPage" element={<NewPassPage />} />
         </Route>
+
+        {/* Dashboard Routes */}
         <Route path="/" element={<DashboardLayout />}>
           <Route path="DashboardPage" element={<DashboardPage />} />
           <Route path="MenuPage" element={<MenuPage />} />
-          <Route path="OrderPage" element={<OrderPage />} />
-          <Route path="OrderHistoryPage" element={<OrderHistoryPage />} />
-          <Route path="/MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
+          <Route path="OrderPage" element={<OrderPage type="masuk" />} />
+          <Route
+            path="OrderHistoryPage"
+            element={<OrderHistoryPage type="riwayat" />}
+          />
+          <Route path="MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
           <Route path="AddMenuPage" element={<AddMenuPage />} />
-          <Route path="/OrderDetailPage/:id" element={<OrderDetailPage />} />
-
+          <Route
+            path="OrderDetailPage/:type/:id"
+            element={<OrderDetailPage />}
+          />
           <Route path="ProfilePage" element={<ProfilePage />} />
         </Route>
       </Routes>

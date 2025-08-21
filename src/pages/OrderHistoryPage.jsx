@@ -1,8 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdEye } from "react-icons/io";
 import OrderCard from "../components/Order/OrderCard";
 import Table from "../components/Table";
+import Pagination from "../components/Pagination";
+import { Pesanan } from "../services/Pesanan";
+
+const LoadingSpinner = () => (
+  <div className="text-center p-15">Memuat riwayat pesanan...</div>
+);
+
+const ErrorMessage = ({ message }) => (
+  <div className="text-center text-red-500 p-15">{message}</div>
+);
 
 const columns = [
   "No",
@@ -13,40 +23,99 @@ const columns = [
   "Detail",
 ];
 
-const OrderHistoryPage = () => {
+// Styling status
+const getStatusStyles = (status) => {
+  const s = (status || "").toLowerCase();
+  switch (s) {
+    case "pesanan selesai":
+      return "text-[#005B96]";
+    default:
+      return "text-gray-500";
+  }
+};
+
+// Format tanggal konsisten
+const formatTanggal = (tanggal) => {
+  if (!tanggal) return "N/A";
+  const options = {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return new Date(tanggal)
+    .toLocaleString("id-ID", options)
+    .replace(/\./g, ":") 
+    .replace(",", "") 
+    .replace("pukul ", ""); 
+};
+
+const OrderHistoryPage = ({ type = "riwayat" }) => {
   const navigate = useNavigate();
   const [riwayatList, setRiwayatList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+ const fetchRiwayat = useCallback(
+   async (page = 1) => {
+     setIsLoading(true);
+     setError("");
+     try {
+       const token = localStorage.getItem("token");
+       if (!token) {
+         navigate("/LoginPage");
+         return;
+       }
+
+       const response = await Pesanan.getRiwayatPesanan(token, page);
+
+       const formattedData = (response.data || []).map((order, index) => ({
+         id: order.id,
+         nomor: (page - 1) * 8 + index + 1,
+         nama: order.nama_pemesan || "Tidak diketahui",
+         no_hp: order.no_hp || "-", 
+         tanggal_bayar:
+           order.tanggal_bayar ?? order.created_at ?? new Date().toISOString(),
+         total_harga: Number(order.total_harga) || 0,
+         metode_bayar: order.metode_bayar || order.payment_type || "N/A",
+         tipe_pengantaran: order.tipe_pengantaran || "-",
+         status: order.status === "done" ? "Pesanan Selesai" : order.status,
+       }));
+
+       setRiwayatList(formattedData);
+       setTotalPages(response.totalPages || 1);
+     } catch (err) {
+       console.error("Gagal mengambil riwayat pesanan:", err);
+       setError(err.response?.data?.message || "Gagal memuat data riwayat.");
+     } finally {
+       setIsLoading(false);
+     }
+   },
+   [navigate]
+ );
+
 
   useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const filtered = storedOrders.filter(
-      (order) => order.status === "Pesanan Selesai"
-    );
-    setRiwayatList(filtered);
-  }, []);
-
-  useEffect(() => {
-    const handleFocus = () => {
-      const storedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-      const filtered = storedOrders.filter(
-        (order) => order.status === "Pesanan Selesai"
-      );
-      setRiwayatList(filtered);
-    };
-
+    fetchRiwayat(currentPage);
+    const handleFocus = () => fetchRiwayat(currentPage);
     window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, []);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [currentPage, fetchRiwayat]);
 
-  const transformedData = riwayatList.map((order, idx) => ({
-    No: idx + 1,
-    "Nama Pelanggan": order.name,
-    Tanggal: order.time,
-    Harga: order.total,
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
+  const transformedData = riwayatList.map((order) => ({
+    No: order.nomor,
+    "Nama Pelanggan": order.nama,
+    Tanggal: formatTanggal(order.tanggal_bayar),
+    Harga: `Rp ${order.total_harga.toLocaleString("id-ID")}`,
     "Status Pesanan": order.status,
-    Detail: order.orderNumber,
+    id: order.id,
+    raw: order,
   }));
 
   return (
@@ -64,24 +133,28 @@ const OrderHistoryPage = () => {
         </div>
       ) : (
         <>
-          {/* Mobile View */}
+          {/* Mobile */}
           <div className="block lg:hidden space-y-4">
             {riwayatList.map((order) => (
               <div
-                key={order.orderNumber}
+                key={order.id}
                 onClick={() =>
-                  navigate(`/OrderDetailPage/${order.orderNumber}`, {
+                  navigate(`/OrderDetailPage/${type}/${order.id}`, {
                     state: { from: "history" },
                   })
                 }
                 className="cursor-pointer active:scale-[0.98] transition-transform duration-150"
               >
-                <OrderCard {...order} />
+                <OrderCard
+                  {...order}
+                  tanggal_bayar={formatTanggal(order.tanggal_bayar)}
+                  no_hp={order.no_hp}
+                />
               </div>
             ))}
           </div>
 
-          {/* Desktop View */}
+          {/* Desktop */}
           <div className="hidden lg:block">
             <Table
               columns={columns}
@@ -108,16 +181,18 @@ const OrderHistoryPage = () => {
                   </span>
                 ),
                 "Status Pesanan": (row) => (
-                  <span className="font-semibold text-[#005B96] text-base">
+                  <span
+                    className={`px-3 py-1 text-base rounded-full font-semibold inline-block ${getStatusStyles(
+                      row["Status Pesanan"]
+                    )}`}
+                  >
                     {row["Status Pesanan"]}
                   </span>
                 ),
                 Detail: (row) => (
                   <button
                     onClick={() =>
-                      navigate(`/OrderDetailPage/${row.Detail}`, {
-                        state: { from: "history" },
-                      })
+                      navigate(`/OrderDetailPage/${type}/${row.id}`)
                     }
                     className="text-primary cursor-pointer"
                     title="Lihat Detail"
@@ -126,6 +201,15 @@ const OrderHistoryPage = () => {
                   </button>
                 ),
               }}
+            />
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-center mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages || 1} 
+              onPageChange={setCurrentPage}
             />
           </div>
         </>

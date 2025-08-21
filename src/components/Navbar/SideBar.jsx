@@ -3,7 +3,7 @@ import { FaBars, FaClipboardList, FaChevronLeft } from "react-icons/fa";
 import { LiaTimesSolid } from "react-icons/lia";
 import { MdDashboard, MdOutlineHistory } from "react-icons/md";
 import { RiListSettingsLine } from "react-icons/ri";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"; // ⬅️ tambahin useParams
 import { Pesanan } from "../../services/Pesanan";
 
 const navItems = [
@@ -33,23 +33,25 @@ const SideBar = ({ isOpen, setIsOpen }) => {
   const [orderCount, setOrderCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+  const { type } = useParams(); // ⬅️ ambil type dari route
 
-  // Ambil jumlah pesanan masuk dari API
-useEffect(() => {
-  const fetchOrderCount = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const data = await Pesanan.getCountPesananMasuk(token);
-      setOrderCount(data.jumlah || 0);
-    } catch (err) {
-      console.error("Gagal ambil jumlah pesanan:", err);
-    }
-  };
+  // hitung jumlah pesanan masuk
+  useEffect(() => {
+    const fetchOrderCount = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const data = await Pesanan.getCountPesananMasuk(token);
+        setOrderCount(data.jumlah || 0);
+      } catch (err) {
+        console.error("Gagal ambil jumlah pesanan:", err);
+      }
+    };
 
-  fetchOrderCount();
-  const interval = setInterval(fetchOrderCount, 30000);
-  return () => clearInterval(interval);
-}, []);
+    fetchOrderCount();
+    const interval = setInterval(fetchOrderCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const showBackButton =
     location.pathname === "/AddMenuPage" ||
     location.pathname.includes("/EditMenuPage") ||
@@ -62,17 +64,12 @@ useEffect(() => {
     ) {
       return "/MenuPage";
     }
-
     if (location.pathname.startsWith("/OrderDetailPage")) {
-      const fromState = location.state?.from;
-
-      if (fromState === "history") return "/OrderHistoryPage";
-      return "/OrderPage";
+      return type === "riwayat" ? "/OrderHistoryPage" : "/OrderPage"; // ⬅️ pakai params
     }
     if (location.pathname === "/ProfilePage") {
       return "/DashboardPage";
     }
-
     return location.pathname;
   };
 
@@ -83,12 +80,8 @@ useEffect(() => {
     ) {
       navigate("/MenuPage");
     } else if (location.pathname.startsWith("/OrderDetailPage")) {
-      const from = location.state?.from;
-      if (from === "history") {
-        navigate("/OrderHistoryPage");
-      } else {
-        navigate("/OrderPage");
-      }
+      if (type === "riwayat") navigate("/OrderHistoryPage");
+      else navigate("/OrderPage");
     }
   };
 
@@ -102,18 +95,17 @@ useEffect(() => {
         />
       )}
 
-      {/* Tombol kembali atau hamburger */}
+      {/* Tombol back / hamburger */}
       {!isOpen && (
         <>
-          {showBackButton && (
+          {showBackButton ? (
             <button
               className="fixed top-4 left-5 z-50 bg-primary rounded-full p-2 text-black lg:hidden"
               onClick={handleBack}
             >
               <FaChevronLeft className="w-5 h-5" />
             </button>
-          )}
-          {!showBackButton && (
+          ) : (
             <button
               className="fixed top-4 left-5 z-50 shadow bg-white text-gray-700 rounded-full p-2 lg:hidden"
               onClick={() => setIsOpen(true)}
@@ -149,7 +141,7 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Navigation Items */}
+        {/* Nav Items */}
         <ul className="space-y-2 text-white font-semibold">
           {navItems.map((item) => (
             <li key={item.name}>
