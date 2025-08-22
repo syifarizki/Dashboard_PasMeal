@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const onboardings = [
   {
@@ -19,7 +21,6 @@ const onboardings = [
   },
 ];
 
-
 const SliderContent = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -28,13 +29,14 @@ const SliderContent = () => {
       setActiveIndex((prevIndex) => (prevIndex + 1) % onboardings.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []); 
+  }, []);
 
   return (
     <>
-      <img
+      <LazyLoadImage
         src={onboardings[activeIndex].image}
         alt="Ilustrasi"
+        effect="blur"
         className="w-[70%] mx-auto max-w-xs md:max-w-sm lg:w-full lg:max-w-sm h-auto object-contain mb-6 lg:mb-8 transition-all duration-500 lg:mx-auto"
       />
       <p className="text-black text-lg md:text-xl font-medium px-4 lg:px-0 lg:mb-8 lg:leading-relaxed text-center">
@@ -54,6 +56,6 @@ const SliderContent = () => {
       </div>
     </>
   );
-}
+};
 
 export default SliderContent;

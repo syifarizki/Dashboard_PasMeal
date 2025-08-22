@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import OnboardingSlider from "../../components/OnboardingSlider";
@@ -15,6 +15,12 @@ const LoginPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertData, setAlertData] = useState({});
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Kalau sebelumnya pernah centang rememberMe, otomatis isi nama
+    const savedNama = localStorage.getItem("rememberNama");
+    if (savedNama) setNama(savedNama);
+  }, []);
 
   const showSuccessAlert = () => {
     setAlertData({
@@ -46,8 +52,11 @@ const LoginPage = () => {
       const res = await AuthApi.login(nama, password, rememberMe);
 
       if (res?.token) {
+        // Simpan token sesuai durasi 
         localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res.penjual));
 
+        // Remember nama untuk next login
         if (rememberMe) {
           localStorage.setItem("rememberNama", nama);
         } else {

@@ -46,9 +46,9 @@ const formatTanggal = (tanggal) => {
   };
   return new Date(tanggal)
     .toLocaleString("id-ID", options)
-    .replace(/\./g, ":") 
-    .replace(",", "") 
-    .replace("pukul ", ""); 
+    .replace(/\./g, ":")
+    .replace(",", "")
+    .replace("pukul ", "");
 };
 
 const OrderHistoryPage = ({ type = "riwayat" }) => {
@@ -59,44 +59,43 @@ const OrderHistoryPage = ({ type = "riwayat" }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
- const fetchRiwayat = useCallback(
-   async (page = 1) => {
-     setIsLoading(true);
-     setError("");
-     try {
-       const token = localStorage.getItem("token");
-       if (!token) {
-         navigate("/LoginPage");
-         return;
-       }
+  const fetchRiwayat = useCallback(
+    async (page = 1) => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/LoginPage");
+          return;
+        }
 
-       const response = await Pesanan.getRiwayatPesanan(token, page);
+        const response = await Pesanan.getRiwayatPesanan(token, page);
 
-       const formattedData = (response.data || []).map((order, index) => ({
-         id: order.id,
-         nomor: (page - 1) * 8 + index + 1,
-         nama: order.nama_pemesan || "Tidak diketahui",
-         no_hp: order.no_hp || "-", 
-         tanggal_bayar:
-           order.tanggal_bayar ?? order.created_at ?? new Date().toISOString(),
-         total_harga: Number(order.total_harga) || 0,
-         metode_bayar: order.metode_bayar || order.payment_type || "N/A",
-         tipe_pengantaran: order.tipe_pengantaran || "-",
-         status: order.status === "done" ? "Pesanan Selesai" : order.status,
-       }));
+        const formattedData = (response.data || []).map((order, index) => ({
+          id: order.id,
+          nomor: (page - 1) * 8 + index + 1,
+          nama: order.nama_pemesan || "Tidak diketahui",
+          no_hp: order.no_hp || "-",
+          tanggal_bayar:
+            order.tanggal_bayar ?? order.created_at ?? new Date().toISOString(),
+          total_harga: Number(order.total_harga) || 0,
+          metode_bayar: order.metode_bayar || order.payment_type || "N/A",
+          tipe_pengantaran: order.tipe_pengantaran || "-",
+          status: order.status === "done" ? "Pesanan Selesai" : order.status,
+        }));
 
-       setRiwayatList(formattedData);
-       setTotalPages(response.totalPages || 1);
-     } catch (err) {
-       console.error("Gagal mengambil riwayat pesanan:", err);
-       setError(err.response?.data?.message || "Gagal memuat data riwayat.");
-     } finally {
-       setIsLoading(false);
-     }
-   },
-   [navigate]
- );
-
+        setRiwayatList(formattedData);
+        setTotalPages(response.totalPages || 1);
+      } catch (err) {
+        console.error("Gagal mengambil riwayat pesanan:", err);
+        setError(err.response?.data?.message || "Gagal memuat data riwayat.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     fetchRiwayat(currentPage);
@@ -208,7 +207,7 @@ const OrderHistoryPage = ({ type = "riwayat" }) => {
           <div className="flex justify-center mt-4">
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages || 1} 
+              totalPages={totalPages || 1}
               onPageChange={setCurrentPage}
             />
           </div>

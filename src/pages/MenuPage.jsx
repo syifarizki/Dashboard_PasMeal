@@ -8,6 +8,8 @@ import Table from "../components/Table";
 import ToggleSwitch from "../components/Input/ToggleSwitch";
 import Pagination from "../components/Pagination";
 import { Menu } from "../services/Menu";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -95,13 +97,14 @@ const MenuPage = () => {
   const customRender = {
     "Nama Menu": (item) => (
       <div className="flex items-center gap-3">
-        <img
+        <LazyLoadImage
           src={
             item.foto_menu
               ? `${import.meta.env.VITE_API_URL}/uploads/${item.foto_menu}`
               : "/images/menudefault.jpg"
           }
           alt={item.nama_menu || "Menu"}
+          effect="blur"
           className="w-14 h-14 object-cover rounded-xl border border-gray-200"
           onError={(e) => {
             e.target.onerror = null;
@@ -218,7 +221,7 @@ const MenuPage = () => {
       )}
 
       {/* Tambah Menu Button */}
-      <div className="fixed bottom-6 inset-x-0 flex justify-center px-8 z-50 lg:ml-[256px] lg:w-[calc(100%-256px)]">
+      <div className="fixed bottom-6 inset-x-0 flex justify-center px-8 z-40 lg:ml-[256px] lg:w-[calc(100%-256px)]">
         <div className="w-full max-w-6xl">
           <PrimaryButton
             text={

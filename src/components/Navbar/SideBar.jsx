@@ -33,7 +33,7 @@ const SideBar = ({ isOpen, setIsOpen }) => {
   const [orderCount, setOrderCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-  const { type } = useParams(); // ⬅️ ambil type dari route
+  const { type } = useParams(); 
 
   // hitung jumlah pesanan masuk
   useEffect(() => {
@@ -48,7 +48,7 @@ const SideBar = ({ isOpen, setIsOpen }) => {
     };
 
     fetchOrderCount();
-    const interval = setInterval(fetchOrderCount, 30000);
+    const interval = setInterval(fetchOrderCount, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -65,7 +65,7 @@ const SideBar = ({ isOpen, setIsOpen }) => {
       return "/MenuPage";
     }
     if (location.pathname.startsWith("/OrderDetailPage")) {
-      return type === "riwayat" ? "/OrderHistoryPage" : "/OrderPage"; // ⬅️ pakai params
+      return type === "riwayat" ? "/OrderHistoryPage" : "/OrderPage"; 
     }
     if (location.pathname === "/ProfilePage") {
       return "/DashboardPage";
