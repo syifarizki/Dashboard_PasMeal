@@ -5,16 +5,16 @@ import TextArea from "../Input/TextArea";
 import PrimaryButton from "../Button/PrimaryButton";
 import Notification from "../Popup/Notification";
 import { Kios } from "../../services/Kios";
+import { getImageUrl } from "../../../utils/imageHelper";
 
 const ProfileToko = () => {
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState("/images/menudefault.jpg");
   const [storeName, setStoreName] = useState("");
   const [description, setDescription] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [originalData, setOriginalData] = useState(null);
-
   const [isSaving, setIsSaving] = useState(false);
 
   // State popup notif
@@ -36,7 +36,7 @@ const ProfileToko = () => {
         setBankName(data.nama_bank || "");
         setAccountNumber(data.nomor_rekening || "");
         if (data.gambar_kios) {
-          setImagePreview(data.gambar_kios);
+          setImagePreview(getImageUrl(data.gambar_kios));
         }
         setOriginalData(data);
       } catch (error) {
@@ -61,43 +61,48 @@ const ProfileToko = () => {
       setDescription(originalData.deskripsi || "");
       setBankName(originalData.nama_bank || "");
       setAccountNumber(originalData.nomor_rekening || "");
-      setImagePreview(originalData.gambar_kios || null);
+      setImagePreview(getImageUrl(originalData.gambar_kios));
       setImageFile(null);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setIsSaving(true);
-      const token = localStorage.getItem("token");
-      await Kios.updateKios({
-        nama_kios: storeName,
-        deskripsi: description,
-        nama_bank: bankName,
-        nomor_rekening: accountNumber,
-        gambar_kios: imageFile,
-        token,
-      });
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+   try {
+     setIsSaving(true);
+     const token = localStorage.getItem("token");
 
-      setNotif({
-        show: true,
-        title: "Berhasil",
-        message: "Profil toko berhasil diperbarui!",
-        iconImage: "/images/berhasil.png", 
-      });
-    } catch (error) {
-      console.error("Gagal update kios:", error);
-      setNotif({
-        show: true,
-        title: "Gagal",
-        message: "Terjadi kesalahan saat menyimpan data",
-        iconImage: "/images/gagal.png", 
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+     await Kios.updateKios(
+       {
+         nama_kios: storeName,
+         deskripsi: description,
+         nama_bank: bankName,
+         nomor_rekening: accountNumber,
+         gambar_kios: imageFile || null, // hanya dikirim kalau user pilih gambar baru
+       },
+       token
+     );
+
+     setNotif({
+       show: true,
+       title: "Berhasil",
+       message: "Profil toko berhasil diperbarui!",
+       iconImage: "/images/berhasil.png",
+     });
+   } catch (error) {
+     console.error("Gagal update kios:", error);
+     setNotif({
+       show: true,
+       title: "Gagal",
+       message: "Terjadi kesalahan saat menyimpan data",
+       iconImage: "/images/gagal.png",
+     });
+   } finally {
+     setIsSaving(false);
+   }
+ };
+
+
 
   return (
     <>
@@ -156,7 +161,6 @@ const ProfileToko = () => {
         </div>
       </form>
 
-      {/* Notification */}
       <Notification
         show={notif.show}
         onClose={() => setNotif((prev) => ({ ...prev, show: false }))}

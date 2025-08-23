@@ -8,6 +8,7 @@ import Table from "../components/Table";
 import ToggleSwitch from "../components/Input/ToggleSwitch";
 import Pagination from "../components/Pagination";
 import { Menu } from "../services/Menu";
+import { getImageUrl } from "../../utils/imageHelper";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
@@ -27,18 +28,13 @@ const MenuPage = () => {
   // Load menu dari API
   const loadMenus = useCallback(async () => {
     try {
-      const response = await Menu.getMenusPaginated(
+      const { data, total } = await Menu.getMenusPaginated(
         token,
         currentPage,
         ITEMS_PER_PAGE
       );
-
-      if (Array.isArray(response.data)) {
-        setMenus(response.data);
-        setTotalItems(response.total || response.data.length);
-      } else {
-        console.error("Format response tidak sesuai:", response);
-      }
+      setMenus(data);
+      setTotalItems(total);
     } catch (error) {
       console.error("Gagal mengambil menu:", error);
     }
@@ -68,7 +64,7 @@ const MenuPage = () => {
   const handleToggleStock = async (id, currentStock) => {
     try {
       const payload = { status_tersedia: !currentStock };
-      const updatedMenu = await Menu.updateMenu(id, payload, token, false);
+      const updatedMenu = await Menu.updateMenu(id, payload, token);
 
       setMenus((prev) =>
         prev.map((menu) =>
@@ -87,9 +83,7 @@ const MenuPage = () => {
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   const formatPrice = (price) =>
-    price !== undefined && price !== null
-      ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-      : "";
+    price ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "";
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
@@ -98,13 +92,13 @@ const MenuPage = () => {
     "Nama Menu": (menu) => (
       <div className="flex items-center gap-3">
         <LazyLoadImage
-          src={menu.foto_menu}
+          src={getImageUrl(menu.foto_menu)}
           alt={menu.nama_menu || "Menu"}
           effect="blur"
+          placeholderSrc="/images/menudefault.jpg"
           className="w-14 h-14 object-cover rounded-xl border border-gray-200"
           onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/images/menudefault.jpg";
+            e.currentTarget.src = "/images/menudefault.jpg";
           }}
         />
         <span className="font-semibold text-lg text-black">
@@ -141,6 +135,7 @@ const MenuPage = () => {
         </div>
       )}
 
+      {/* Kondisi kalau kosong */}
       {menus.length === 0 && totalItems === 0 ? (
         <div className="flex flex-col items-center text-center mt-10 px-6">
           <img
@@ -168,14 +163,14 @@ const MenuPage = () => {
                 }`}
               >
                 <img
-                  src={menu.foto_menu}
+                  src={getImageUrl(menu.foto_menu)}
                   alt={menu.nama_menu || "Menu"}
                   className="w-14 h-14 object-cover rounded-xl border border-gray-200"
                   onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/images/menudefault.jpg";
+                    e.currentTarget.src = "/images/menudefault.jpg";
                   }}
                 />
+
                 <div className="ml-4 flex-1">
                   <h2 className="text-lg font-bold text-gray-900">
                     {menu.nama_menu}

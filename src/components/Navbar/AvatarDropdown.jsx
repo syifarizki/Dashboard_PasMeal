@@ -7,6 +7,7 @@ import { IoIosArrowForward } from "react-icons/io";
 import { AuthApi } from "../../services/Auth";
 import { Kios } from "../../services/Kios";
 import { Penjual } from "../../services/Penjual";
+import { getImageUrl } from "../../../utils/imageHelper";
 
 const AvatarDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +31,7 @@ const AvatarDropdown = () => {
       const kios = kiosRes?.data || kiosRes;
 
       // Update avatar dari kios
-      setAvatarUrl(kios?.gambar_kios || "/images/profile.png");
+      setAvatarUrl(getImageUrl(kios?.gambar_kios));
 
       const penjualLengkap =
         Boolean(penjual?.nama) &&
@@ -56,12 +57,10 @@ const AvatarDropdown = () => {
     }
   };
 
-  // Fetch setiap kali komponen mount
   useEffect(() => {
     fetchProfileStatus();
   }, []);
 
-  // Refresh avatar secara berkala (opsional, misal setiap 5 detik)
   useEffect(() => {
     const interval = setInterval(fetchProfileStatus, 1000);
     return () => clearInterval(interval);
@@ -95,6 +94,7 @@ const AvatarDropdown = () => {
               src={avatarUrl}
               alt="User Avatar"
               className="object-cover w-full h-full rounded-full cursor-pointer"
+              onError={(e) => (e.target.src = "/images/menudefault.jpg")}
             />
           </div>
           {isOpen ? (

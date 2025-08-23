@@ -9,26 +9,19 @@ export const Kios = {
         Authorization: `Bearer ${token}`,
       },
     });
-    return res.data.data; 
+    return res.data.data;
   },
 
   // Update profil kios
-  updateKios: async ({
-    nama_kios,
-    deskripsi,
-    nama_bank,
-    nomor_rekening,
-    gambar_kios,
-    token,
-  }) => {
+  updateKios: async (data, token) => {
     const formData = new FormData();
-    formData.append("nama_kios", nama_kios || "");
-    formData.append("deskripsi", deskripsi || "");
-    formData.append("nama_bank", nama_bank || "");
-    formData.append("nomor_rekening", nomor_rekening || "");
+    formData.append("nama_kios", data.nama_kios || "");
+    formData.append("deskripsi", data.deskripsi || "");
+    formData.append("nama_bank", data.nama_bank || "");
+    formData.append("nomor_rekening", data.nomor_rekening || "");
 
-    if (gambar_kios) {
-      formData.append("gambar_kios", gambar_kios);
+    if (data.gambar_kios) {
+      formData.append("gambar_kios", data.gambar_kios);
     }
 
     const res = await axios.put(`${API_URL}/api/kios/profil`, formData, {
