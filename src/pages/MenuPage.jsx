@@ -18,11 +18,11 @@ const MenuPage = () => {
   const location = useLocation();
   const token = localStorage.getItem("token");
 
-  const [menuItems, setMenuItems] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0); 
+  const [totalItems, setTotalItems] = useState(0);
 
   // Load menu dari API
   const loadMenus = useCallback(async () => {
@@ -32,14 +32,17 @@ const MenuPage = () => {
         currentPage,
         ITEMS_PER_PAGE
       );
+
       if (Array.isArray(response.data)) {
-        setMenuItems(response.data);
-        setTotalItems(response.total); 
+        setMenus(response.data);
+        setTotalItems(response.total || response.data.length);
+      } else {
+        console.error("Format response tidak sesuai:", response);
       }
     } catch (error) {
       console.error("Gagal mengambil menu:", error);
     }
-  }, [token, currentPage]); 
+  }, [token, currentPage]);
 
   useEffect(() => {
     loadMenus();
@@ -54,8 +57,8 @@ const MenuPage = () => {
 
   // Hapus menu
   const handleDelete = (id) => {
-    setMenuItems((prev) => prev.filter((m) => m.id !== id));
-    setTotalItems((prev) => prev - 1); // Kurangi total item
+    setMenus((prev) => prev.filter((menu) => menu.id !== id));
+    setTotalItems((prev) => prev - 1);
     setSelectedMenu(null);
     setSuccessMessage("Berhasil menghapus menu");
     setTimeout(() => setSuccessMessage(""), 3000);
@@ -67,11 +70,11 @@ const MenuPage = () => {
       const payload = { status_tersedia: !currentStock };
       const updatedMenu = await Menu.updateMenu(id, payload, token, false);
 
-      setMenuItems((prev) =>
-        prev.map((m) =>
-          m.id === id
-            ? { ...m, status_tersedia: updatedMenu.status_tersedia }
-            : m
+      setMenus((prev) =>
+        prev.map((menu) =>
+          menu.id === id
+            ? { ...menu, status_tersedia: updatedMenu.status_tersedia }
+            : menu
         )
       );
       setSuccessMessage("Berhasil mengubah status menu");
@@ -81,29 +84,22 @@ const MenuPage = () => {
     }
   };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
   const formatPrice = (price) =>
     price !== undefined && price !== null
       ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
       : "";
 
-  // Pagination
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   const columns = ["Nama Menu", "Harga", "Status Stok", "Aksi"];
   const customRender = {
-    "Nama Menu": (item) => (
+    "Nama Menu": (menu) => (
       <div className="flex items-center gap-3">
         <LazyLoadImage
-          src={
-            item.foto_menu
-              ? `${import.meta.env.VITE_API_URL}/uploads/${item.foto_menu}`
-              : "/images/menudefault.jpg"
-          }
-          alt={item.nama_menu || "Menu"}
+          src={menu.foto_menu}
+          alt={menu.nama_menu || "Menu"}
           effect="blur"
           className="w-14 h-14 object-cover rounded-xl border border-gray-200"
           onError={(e) => {
@@ -111,26 +107,25 @@ const MenuPage = () => {
             e.target.src = "/images/menudefault.jpg";
           }}
         />
-
         <span className="font-semibold text-lg text-black">
-          {item.nama_menu}
+          {menu.nama_menu}
         </span>
       </div>
     ),
-    Harga: (item) => (
-      <span className="text-base">Rp. {formatPrice(item.harga)}</span>
+    Harga: (menu) => (
+      <span className="text-base">Rp. {formatPrice(menu.harga)}</span>
     ),
-    "Status Stok": (item) => (
+    "Status Stok": (menu) => (
       <div className="ml-6">
         <ToggleSwitch
-          checked={item.status_tersedia}
-          onChange={() => handleToggleStock(item.id, item.status_tersedia)}
+          checked={menu.status_tersedia}
+          onChange={() => handleToggleStock(menu.id, menu.status_tersedia)}
         />
       </div>
     ),
-    Aksi: (item) => (
+    Aksi: (menu) => (
       <button
-        onClick={() => setSelectedMenu(item)}
+        onClick={() => setSelectedMenu(menu)}
         className="text-primary cursor-pointer"
       >
         <IoMdEye className="w-8 h-8" />
@@ -146,7 +141,7 @@ const MenuPage = () => {
         </div>
       )}
 
-      {menuItems.length === 0 && totalItems === 0 ? (
+      {menus.length === 0 && totalItems === 0 ? (
         <div className="flex flex-col items-center text-center mt-10 px-6">
           <img
             src="/images/empty.png"
@@ -164,37 +159,28 @@ const MenuPage = () => {
         <>
           {/* Mobile List */}
           <div className="w-full max-w-2xl border border-gray-300 rounded-xl overflow-hidden md:hidden">
-            {menuItems.map((item, index) => (
+            {menus.map((menu, index) => (
               <div
-                key={item.id || index}
-                onClick={() => setSelectedMenu(item)}
+                key={menu.id || index}
+                onClick={() => setSelectedMenu(menu)}
                 className={`cursor-pointer flex items-center bg-white p-4 hover:bg-gray-50 transition-colors ${
-                  index !== menuItems.length - 1
-                    ? "border-b border-gray-300"
-                    : ""
+                  index !== menus.length - 1 ? "border-b border-gray-300" : ""
                 }`}
               >
                 <img
-                  src={
-                    item.foto_menu
-                      ? `${import.meta.env.VITE_API_URL}/uploads/${
-                          item.foto_menu
-                        }`
-                      : "/images/menudefault.jpg"
-                  }
-                  alt={item.nama_menu || "Menu"}
+                  src={menu.foto_menu}
+                  alt={menu.nama_menu || "Menu"}
                   className="w-14 h-14 object-cover rounded-xl border border-gray-200"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/images/menudefault.jpg";
                   }}
                 />
-
                 <div className="ml-4 flex-1">
                   <h2 className="text-lg font-bold text-gray-900">
-                    {item.nama_menu}
+                    {menu.nama_menu}
                   </h2>
-                  <p className="text-black">Rp. {formatPrice(item.harga)}</p>
+                  <p className="text-black">Rp. {formatPrice(menu.harga)}</p>
                 </div>
                 <HiChevronRight className="w-10 h-10 text-black" />
               </div>
@@ -205,7 +191,7 @@ const MenuPage = () => {
           <div className="hidden md:block w-full max-w-6xl mt-4 px-4">
             <Table
               columns={columns}
-              data={menuItems}
+              data={menus}
               customRender={customRender}
               rowKey="id"
             />
@@ -228,9 +214,7 @@ const MenuPage = () => {
               <div className="flex items-center justify-center gap-2">
                 <HiPlus className="h-5 w-5" />
                 <span>
-                  {menuItems.length === 0 && totalItems === 0
-                    ? "Buat Menu Baru"
-                    : "Tambah Menu Baru"}
+                  {menus.length === 0 ? "Buat Menu Baru" : "Tambah Menu Baru"}
                 </span>
               </div>
             }

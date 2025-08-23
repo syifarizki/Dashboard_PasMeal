@@ -22,24 +22,25 @@ const EditMenuPage = () => {
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
+useEffect(() => {
+  const fetchMenuDetail = async () => {
+    try {
+      const menuDetail = await Menu.getMenuById(id, token);
+      setMenuName(menuDetail.nama_menu || "");
+      setPrice(menuDetail.harga?.toString() || "");
+      setDescription(menuDetail.deskripsi || "");
+      setServingTime(menuDetail.estimasi_menit?.toString() || "");
+      // pakai foto_menu dari backend (sudah full URL)
+      setImagePreview(menuDetail.foto_menu || "/images/menudefault.jpg");
+      setIsAvailable(menuDetail.status_tersedia ?? true);
+    } catch (error) {
+      console.error("Gagal mengambil detail menu:", error);
+      navigate("/MenuPage");
+    }
+  };
+  fetchMenuDetail();
+}, [id, navigate, token]);
 
-  useEffect(() => {
-    const fetchMenuDetail = async () => {
-      try {
-        const menuDetail = await Menu.getMenuById(id, token);
-        setMenuName(menuDetail.nama_menu || "");
-        setPrice(menuDetail.harga?.toString() || "");
-        setDescription(menuDetail.deskripsi || "");
-        setServingTime(menuDetail.estimasi_menit?.toString() || "");
-        setImagePreview(menuDetail.foto_menu_full || "/images/menudefault.jpg");
-        setIsAvailable(menuDetail.status_tersedia ?? true);
-      } catch (error) {
-        console.error("Gagal mengambil detail menu:", error);
-        navigate("/MenuPage");
-      }
-    };
-    fetchMenuDetail();
-  }, [id, navigate, token]);
 
   const handleImageUpload = (file) => {
     setImageFile(file);

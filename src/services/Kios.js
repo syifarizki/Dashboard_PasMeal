@@ -9,7 +9,7 @@ export const Kios = {
         Authorization: `Bearer ${token}`,
       },
     });
-    return res.data.data; // langsung ambil objek kios dari backend
+    return res.data.data; 
   },
 
   // Update profil kios

@@ -42,8 +42,6 @@ const AddMenuPage = () => {
     try {
       setLoading(true);
       const newMenu = await Menu.addMenu(formData, token);
-
-      // langsung navigasi ke MenuPage dan bawa menu baru agar langsung tampil
       navigate("/MenuPage", {
         state: { success: "Berhasil menambahkan menu", newMenu },
       });

@@ -7,29 +7,14 @@ export const Menu = {
     const res = await axios.get(`${API_URL}/api/menu`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    return res.data.map((item) => ({
-      ...item,
-      id: item.id || item._id,
-      foto_menu_full: item.foto_menu
-        ? `${API_URL}/uploads/${item.foto_menu}`
-        : "/images/menudefault.jpg",
-    }));
+    return res.data;
   },
 
   getMenuById: async (id, token) => {
     const res = await axios.get(`${API_URL}/api/menu/seller/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    const item = res.data;
-    return {
-      ...item,
-      id: item.id || item._id,
-      foto_menu_full: item.foto_menu
-        ? `${API_URL}/uploads/${item.foto_menu}`
-        : "/images/menudefault.jpg",
-    };
+    return res.data;
   },
 
   addMenu: async (formData, token) => {
@@ -39,14 +24,7 @@ export const Menu = {
         "Content-Type": "multipart/form-data",
       },
     });
-    const newMenu = res.data.data;
-    return {
-      ...newMenu,
-      id: newMenu.id || newMenu._id,
-      foto_menu_full: newMenu.foto_menu
-        ? `${API_URL}/uploads/${newMenu.foto_menu}`
-        : "/images/menudefault.jpg",
-    };
+    return res.data.data;
   },
 
   updateMenu: async (id, data, token, isFormData = false) => {
@@ -59,15 +37,7 @@ export const Menu = {
       isFormData ? data : JSON.stringify(data),
       { headers }
     );
-
-    const item = res.data.data || res.data;
-    return {
-      ...item,
-      id: item.id || item._id,
-      foto_menu_full: item.foto_menu
-        ? `${API_URL}/uploads/${item.foto_menu}`
-        : "/images/menudefault.jpg",
-    };
+    return res.data.data || res.data;
   },
 
   deleteMenu: async (id, token) => {
@@ -80,23 +50,12 @@ export const Menu = {
   getMenusPaginated: async (token, page, limit) => {
     const res = await axios.get(`${API_URL}/api/menu/paginated`, {
       headers: { Authorization: `Bearer ${token}` },
-      params: {
-        page: page,
-        limit: limit,
-      },
+      params: { page, limit },
     });
 
-    const transformedData = res.data.data.map((item) => ({
-      ...item,
-      id: item.id || item._id,
-      foto_menu_full: item.foto_menu
-        ? `${API_URL}/uploads/${item.foto_menu}`
-        : "/images/menudefault.jpg",
-    }));
-
     return {
-      data: transformedData,
-      total: res.data.total,
+      data: res.data.data || [],
+      total: res.data.total || 0,
     };
   },
 };

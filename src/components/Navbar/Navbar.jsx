@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import AvatarDropdown from "./AvatarDropdown";
-import { useLocation, useNavigate, useParams } from "react-router-dom"; // ⬅️ pakai useParams
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
 import { Penjual } from "../../services/Penjual";
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { type } = useParams(); // ⬅️ ambil type dari route
+  const { type } = useParams(); 
   const [namaUser, setNamaUser] = useState("User");
 
   const fetchUser = async () => {
