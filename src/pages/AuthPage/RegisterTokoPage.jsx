@@ -12,17 +12,33 @@ const RegisterTokoPage = () => {
   const [noRekening, setNoRekening] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [norekError, setNorekError] = useState("");
 
   const navigate = useNavigate();
+
+  const handleNoRekeningChange = (e) => {
+    const value = e.target.value;
+    setNoRekening(value);
+    if (/^\d*$/.test(value)) {
+      setNorekError("");
+    } else {
+      setNorekError("Nomor rekening harus berupa angka");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+
+    if (!/^\d+$/.test(noRekening)) {
+      setNorekError("Nomor rekening harus berupa angka");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const token = localStorage.getItem("token");
-
       if (!token) {
         setErrorMsg("Token tidak ditemukan, silakan login ulang.");
         setLoading(false);
@@ -30,19 +46,31 @@ const RegisterTokoPage = () => {
       }
 
       await AuthApi.registerKios({
-        namaToko,
-        namaBank,
-        noRekening,
+        nama_kios: namaToko, // ✅ FE pakai snake_case sesuai BE
+        nama_bank: namaBank,
+        nomor_rekening: noRekening,
         token,
       });
 
       navigate("/OtpPage");
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || "Gagal mendaftarkan toko.");
+      const msg =
+        error.response?.data?.message || "Terjadi kesalahan saat membuat kios.";
+
+      if (msg.includes("Nama kios")) {
+        setErrorMsg("Nama toko sudah digunakan, silakan pilih nama lain.");
+      } else if (msg.includes("Kios sudah terdaftar")) {
+        setErrorMsg("Anda sudah memiliki kios yang terdaftar.");
+      } else {
+        setErrorMsg(msg);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const isBtnDisabled =
+    !namaToko || !namaBank || !noRekening || loading || norekError;
 
   return (
     <div className="min-h-screen bg-white grid grid-cols-1 lg:grid-cols-2">
@@ -105,15 +133,18 @@ const RegisterTokoPage = () => {
               type="text"
               label="Nomor Rekening"
               value={noRekening}
-              onChange={(e) => setNoRekening(e.target.value)}
+              onChange={handleNoRekeningChange}
               placeholder="Nomor Rekening"
             />
+            {norekError && (
+              <p className="text-red-500 text-sm mt-1">{norekError}</p>
+            )}
 
             <PrimaryButton
               text={loading ? "Menyimpan..." : "Lanjut"}
               type="submit"
               className="w-full mt-2"
-              disabled={!namaToko || !namaBank || !noRekening || loading}
+              disabled={isBtnDisabled}
             />
           </form>
         </div>

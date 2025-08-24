@@ -23,7 +23,7 @@ const NewPassPage = () => {
     setAlertData({
       iconImage: "/images/berhasil.png",
       title: "Berhasil",
-      message: "Kata sandi baru telah diperbarui",
+      message: "Kata sandi telah diperbarui",
       buttonText: "Oke",
       buttonAction: () => {
         setShowAlert(false);
@@ -46,14 +46,14 @@ const NewPassPage = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!password) newErrors.password = "Kata sandi wajib diisi.";
+    if (!password) newErrors.password = "Kata sandi wajib Baru diisi.";
     else if (password.length < 8)
       newErrors.password = "Kata sandi minimal 8 karakter.";
 
     if (!confirmPassword)
-      newErrors.confirmPassword = "Konfirmasi kata sandi wajib diisi.";
+      newErrors.confirmPassword = "Konfirmasi kata sandi Baru wajib diisi.";
     else if (password !== confirmPassword)
-      newErrors.confirmPassword = "Konfirmasi tidak sama dengan kata sandi.";
+      newErrors.confirmPassword = "Konfirmasi tidak sama dengan kata sandi Baru.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -120,18 +120,18 @@ const NewPassPage = () => {
           {/* Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <InputPassword
-              label="Kata Sandi"
+              label="Kata Sandi Baru"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Kata Sandi"
+              placeholder="Kata Sandi Baru"
               errorMessage={errors.password}
             />
 
             <InputPassword
-              label="Konfirmasi Kata Sandi"
+              label="Konfirmasi Kata Sandi Baru"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Konfirmasi Kata Sandi"
+              placeholder="Konfirmasi Kata Sandi Baru"
               errorMessage={errors.confirmPassword}
             />
 

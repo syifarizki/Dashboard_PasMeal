@@ -13,14 +13,10 @@ export const AuthApi = {
     return res.data;
   },
 
-  registerKios: async ({ namaToko, namaBank, noRekening, token }) => {
+  registerKios: async ({ nama_kios, nama_bank, nomor_rekening, token }) => {
     const res = await axios.post(
       `${API_URL}/api/kios`,
-      {
-        nama_kios: namaToko,
-        nama_bank: namaBank,
-        nomor_rekening: noRekening,
-      },
+      { nama_kios, nama_bank, nomor_rekening },
       {
         headers: {
           Authorization: `Bearer ${token}`,
