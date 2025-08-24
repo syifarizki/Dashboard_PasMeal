@@ -11,7 +11,7 @@ import { getImageUrl } from "../../../utils/imageHelper";
 
 const AvatarDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("/images/profile.png");
+  const [avatarUrl, setAvatarUrl] = useState("/images/menudefault.jpg");
   const [showNotification, setShowNotification] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const dropdownRef = useRef(null);

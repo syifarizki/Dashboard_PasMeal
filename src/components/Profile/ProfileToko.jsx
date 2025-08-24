@@ -17,7 +17,6 @@ const ProfileToko = () => {
   const [originalData, setOriginalData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // State popup notif
   const [notif, setNotif] = useState({
     show: false,
     title: "",
@@ -25,6 +24,7 @@ const ProfileToko = () => {
     iconImage: null,
   });
 
+  // Load data kios saat pertama kali
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -35,9 +35,11 @@ const ProfileToko = () => {
         setDescription(data.deskripsi || "");
         setBankName(data.nama_bank || "");
         setAccountNumber(data.nomor_rekening || "");
-        if (data.gambar_kios) {
-          setImagePreview(getImageUrl(data.gambar_kios));
-        }
+        setImagePreview(
+          data.gambar_kios
+            ? getImageUrl(data.gambar_kios)
+            : "/images/menudefault.jpg"
+        );
         setOriginalData(data);
       } catch (error) {
         console.error("Gagal memuat data kios:", error);
@@ -47,41 +49,52 @@ const ProfileToko = () => {
   }, []);
 
   const handleImageUpload = (file) => {
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleCancel = () => {
-    if (originalData) {
-      setStoreName(originalData.nama_kios || "");
-      setDescription(originalData.deskripsi || "");
-      setBankName(originalData.nama_bank || "");
-      setAccountNumber(originalData.nomor_rekening || "");
-      setImagePreview(getImageUrl(originalData.gambar_kios));
-      setImageFile(null);
-    }
+    if (!originalData) return;
+    setStoreName(originalData.nama_kios || "");
+    setDescription(originalData.deskripsi || "");
+    setBankName(originalData.nama_bank || "");
+    setAccountNumber(originalData.nomor_rekening || "");
+    setImagePreview(
+      originalData.gambar_kios
+        ? getImageUrl(originalData.gambar_kios)
+        : "/images/menudefault.jpg"
+    );
+    setImageFile(null);
   };
 
  const handleSubmit = async (e) => {
    e.preventDefault();
+   if (!originalData) return;
+
    try {
      setIsSaving(true);
      const token = localStorage.getItem("token");
 
-     await Kios.updateKios(
-       {
-         nama_kios: storeName,
-         deskripsi: description,
-         nama_bank: bankName,
-         nomor_rekening: accountNumber,
-         gambar_kios: imageFile || null, // hanya dikirim kalau user pilih gambar baru
-       },
-       token
+     const updatedData = {
+       nama_kios: storeName,
+       deskripsi: description,
+       nama_bank: bankName,
+       nomor_rekening: accountNumber,
+       gambar_kios: imageFile,
+     };
+
+     const data = await Kios.updateKios(updatedData, token, originalData.id);
+
+     setOriginalData(data || {});
+     setImagePreview(
+       data?.gambar_kios
+         ? getImageUrl(data.gambar_kios)
+         : "/images/menudefault.jpg"
      );
+     setImageFile(null);
 
      setNotif({
        show: true,
@@ -90,19 +103,20 @@ const ProfileToko = () => {
        iconImage: "/images/berhasil.png",
      });
    } catch (error) {
-     console.error("Gagal update kios:", error);
+     console.error("Gagal update kios:", error); 
      setNotif({
        show: true,
        title: "Gagal",
-       message: "Terjadi kesalahan saat menyimpan data",
+       message:
+         error.response?.data?.message ||
+         error.message ||
+         "Terjadi kesalahan saat menyimpan data",
        iconImage: "/images/gagal.png",
      });
    } finally {
      setIsSaving(false);
    }
  };
-
-
 
   return (
     <>
@@ -149,8 +163,8 @@ const ProfileToko = () => {
           <PrimaryButton
             text="Batal"
             onClick={handleCancel}
-            className="px-6"
             type="button"
+            className="px-6"
           />
           <PrimaryButton
             text={isSaving ? "Menyimpan..." : "Simpan"}
