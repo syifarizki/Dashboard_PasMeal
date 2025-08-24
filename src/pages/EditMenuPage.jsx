@@ -110,7 +110,7 @@ useEffect(() => {
           <ImageUpload image={imagePreview} onImageChange={handleImageUpload} />
         </div>
 
-        <div className="space-y-4 mb-10">
+        <div className="space-y-4 mb-15">
           <InputText
             label="Nama Menu"
             value={menuName}

@@ -44,6 +44,19 @@ const MenuPage = () => {
     loadMenus();
   }, [loadMenus]);
 
+  // ✅ Tampilkan pesan sukses dari AddMenuPage
+  useEffect(() => {
+    if (location.state?.success) {
+      setSuccessMessage(location.state.success);
+
+      // hapus state supaya tidak muncul lagi saat refresh
+      window.history.replaceState({}, document.title);
+
+      // auto clear setelah 3 detik
+      setTimeout(() => setSuccessMessage(""), 3000);
+    }
+  }, [location.state?.success]);
+
   // Hapus newMenu dari navigasi state
   useEffect(() => {
     if (location.state?.newMenu) {
@@ -130,7 +143,7 @@ const MenuPage = () => {
   return (
     <div className="flex flex-col mt-20 items-center min-h-[60vh] w-full px-4">
       {successMessage && (
-        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg">
+        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md">
           {successMessage}
         </div>
       )}
@@ -193,11 +206,13 @@ const MenuPage = () => {
           </div>
 
           {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          <div className="mb-20 w-full max-w-6xl flex justify-end px-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </>
       )}
 
