@@ -44,19 +44,6 @@ const MenuPage = () => {
     loadMenus();
   }, [loadMenus]);
 
-  // ✅ Tampilkan pesan sukses dari AddMenuPage
-  useEffect(() => {
-    if (location.state?.success) {
-      setSuccessMessage(location.state.success);
-
-      // hapus state supaya tidak muncul lagi saat refresh
-      window.history.replaceState({}, document.title);
-
-      // auto clear setelah 3 detik
-      setTimeout(() => setSuccessMessage(""), 3000);
-    }
-  }, [location.state?.success]);
-
   // Hapus newMenu dari navigasi state
   useEffect(() => {
     if (location.state?.newMenu) {
@@ -73,23 +60,35 @@ const MenuPage = () => {
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  // Toggle status stok menu
+  // Toggle status stok menu (OPTIMISTIC UPDATE)
   const handleToggleStock = async (id, currentStock) => {
-    try {
-      const payload = { status_tersedia: !currentStock };
-      const updatedMenu = await Menu.updateMenu(id, payload, token);
+    const newStockStatus = !currentStock;
 
-      setMenus((prev) =>
-        prev.map((menu) =>
-          menu.id === id
-            ? { ...menu, status_tersedia: updatedMenu.status_tersedia }
-            : menu
-        )
-      );
+    // 1. Perbarui UI secara instan
+    setMenus((prevMenus) =>
+      prevMenus.map((menu) =>
+        menu.id === id ? { ...menu, status_tersedia: newStockStatus } : menu
+      )
+    );
+
+    try {
+      // 2. Kirim permintaan ke server di latar belakang
+      const payload = { status_tersedia: newStockStatus };
+      await Menu.updateMenu(id, payload, token);
+
+      // (Opsional) Tampilkan pesan sukses jika API berhasil
       setSuccessMessage("Berhasil mengubah status menu");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error(err);
+      console.error("Gagal memperbarui status menu:", err);
+
+      // 3. Jika gagal, kembalikan UI ke state semula
+      setMenus((prevMenus) =>
+        prevMenus.map((menu) =>
+          menu.id === id ? { ...menu, status_tersedia: currentStock } : menu
+        )
+      );
+      // Anda bisa menambahkan notifikasi error di sini
     }
   };
 
@@ -143,7 +142,7 @@ const MenuPage = () => {
   return (
     <div className="flex flex-col mt-20 items-center min-h-[60vh] w-full px-4">
       {successMessage && (
-        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md">
+        <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg">
           {successMessage}
         </div>
       )}
