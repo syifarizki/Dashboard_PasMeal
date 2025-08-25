@@ -73,11 +73,18 @@ const OrderPage = ({ type = "masuk" }) => {
 
         // Ambil pesanan sesuai type
         let response;
-        if (type === "masuk") {
-          response = await Pesanan.getPesananMasuk(token, page);
-        } else {
-          response = await Pesanan.getRiwayatPesanan(token, page);
-        }
+       if (type === "masuk") {
+         if (searchParams.get("token")) {
+           //  kalau token dari URL → pakai endpoint WA
+           response = await Pesanan.getPesananMasukWA(token, page);
+         } else {
+           // login biasa
+           response = await Pesanan.getPesananMasuk(token, page);
+         }
+       } else {
+         response = await Pesanan.getRiwayatPesanan(token, page);
+       }
+
 
         const data = response?.data || [];
         const pages = response?.totalPages || 1;

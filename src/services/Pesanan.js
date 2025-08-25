@@ -9,6 +9,16 @@ export const Pesanan = {
     return res.data;
   },
 
+  getPesananMasukWA: async (token, page = 1) => {
+    const res = await axios.get(
+      `${API_URL}/api/pesanan-masuk-wa?page=${page}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return res.data;
+  },
+
   getDetailPesananMasuk: async (id, token) => {
     const res = await axios.get(`${API_URL}/api/pesanan-masuk/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -47,6 +57,4 @@ export const Pesanan = {
     });
     return res.data;
   },
-
-
 };
