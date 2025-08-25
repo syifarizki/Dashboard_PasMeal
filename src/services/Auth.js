@@ -50,8 +50,8 @@ export const AuthApi = {
 
   autoLogin: async ({ kiosId, token }) => {
     const res = await axios.post(
-      `${API_URL}/api/auth/auto-login`,
-      { kiosId }, // body cukup kiosId aja
+      `${API_URL}/api/auto-login`,
+      { kiosId }, 
       {
         headers: {
           Authorization: `Bearer ${token}`,
