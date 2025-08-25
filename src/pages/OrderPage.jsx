@@ -22,7 +22,7 @@ const columns = [
   "Detail",
 ];
 
-// untuk warna status pesanan
+// warna status pesanan
 const getStatusStyles = (status) => {
   const statusLower = status?.toLowerCase() || "";
   switch (statusLower) {
@@ -50,64 +50,63 @@ const OrderPage = ({ type = "masuk" }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
- const fetchOrders = useCallback(
-   async (page = 1) => {
-     setIsLoading(true);
-     setError("");
+  const fetchOrders = useCallback(
+    async (page = 1) => {
+      setIsLoading(true);
+      setError("");
 
-     try {
-       let response;
-       let token = localStorage.getItem("token");
+      try {
+        let token = localStorage.getItem("token");
 
-       // Ambil token dari URL kalau ada
-       const tokenFromUrl = searchParams.get("token");
-       if (tokenFromUrl) {
-         token = tokenFromUrl;
-         localStorage.setItem("token", tokenFromUrl); // auto login
-       }
+        // cek kalau ada token di URL (auto login via link)
+        const tokenFromUrl = searchParams.get("token");
+        if (tokenFromUrl) {
+          token = tokenFromUrl;
+          localStorage.setItem("token", tokenFromUrl);
+        }
 
-       if (!token) {
-         navigate("/LoginPage");
-         return;
-       }
+        if (!token) {
+          navigate("/LoginPage");
+          return;
+        }
 
-       // Ambil pesanan sesuai type
-       if (type === "masuk") {
-         response = await Pesanan.getPesananMasuk(token, page);
-       } else {
-         response = await Pesanan.getRiwayatPesanan(token, page);
-       }
+        // Ambil pesanan sesuai type
+        let response;
+        if (type === "masuk") {
+          response = await Pesanan.getPesananMasuk(token, page);
+        } else {
+          response = await Pesanan.getRiwayatPesanan(token, page);
+        }
 
-       const data = response.data;
-       const pages = response.totalPages;
+        // backend bisa balikin { data, totalPages }
+        const data = response?.data || [];
+        const pages = response?.totalPages || 1;
 
-       const formattedData = (Array.isArray(data) ? data : []).map(
-         (order, index) => ({
-           ...order,
-           id: order.id,
-           nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
-           nama: order.nama || order.nama_pemesan || "Tidak diketahui",
-           no_hp: order.no_hp || "-",
-           created_at: order.created_at || new Date().toISOString(),
-           tanggal_bayar: order.tanggal_bayar || null,
-           total_harga: Number(order.total_harga) || 0,
-           metode_bayar: order.metode_bayar || "QRIS",
-           tipe_pengantaran: order.tipe_pengantaran || "-",
-           status: order.status_label || order.status || "Pending",
-         })
-       );
+        const formattedData = data.map((order, index) => ({
+          ...order,
+          id: order.id,
+          nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
+          nama: order.nama || order.nama_pemesan || "Tidak diketahui",
+          no_hp: order.no_hp || "-",
+          created_at: order.created_at || new Date().toISOString(),
+          tanggal_bayar: order.tanggal_bayar || null,
+          total_harga: Number(order.total_harga) || 0,
+          metode_bayar: order.metode_bayar || "QRIS",
+          tipe_pengantaran: order.tipe_pengantaran || "-",
+          status: order.status_label || order.status || "Pending",
+        }));
 
-       setOrderList(formattedData);
-       setTotalPages(pages);
-     } catch (err) {
-       console.error("Gagal ambil pesanan:", err);
-       setError(err.response?.data?.message || "Gagal memuat data pesanan.");
-     } finally {
-       setIsLoading(false);
-     }
-   },
-   [searchParams, navigate, type]
- );
+        setOrderList(formattedData);
+        setTotalPages(pages);
+      } catch (err) {
+        console.error("Gagal ambil pesanan:", err);
+        setError(err.response?.data?.message || "Gagal memuat data pesanan.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchParams, navigate, type]
+  );
 
   useEffect(() => {
     fetchOrders(currentPage);
@@ -126,8 +125,6 @@ const OrderPage = ({ type = "masuk" }) => {
     id: order.id,
     raw: order,
   }));
-
-
 
   return (
     <div className="p-4 overflow-y-auto h-full mt-15 space-y-4">
@@ -202,7 +199,7 @@ const OrderPage = ({ type = "masuk" }) => {
           <div className="flex justify-center mt-4">
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages || 1} // minimal 1 halaman
+              totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
           </div>

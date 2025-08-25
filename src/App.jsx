@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
 // Layout
 import DashboardLayout from "./pages/Layouts/AppLayout";
@@ -24,6 +30,29 @@ import EditMenuPage from "./pages/EditMenuPage";
 import AddMenuPage from "./pages/AddMenuPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ProfilePage from "./pages/AuthPage/ProfilePage";
+
+// 🔹 Wrapper untuk OrderPage auto-login
+const OrderPageWrapper = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+
+  // ambil token dari URL
+  const tokenFromUrl = params.get("token");
+
+  if (tokenFromUrl) {
+    localStorage.setItem("order_token", tokenFromUrl);
+    return <OrderPage type="masuk" />;
+  }
+
+  // kalau ga ada di URL, coba ambil dari localStorage
+  const savedToken = localStorage.getItem("order_token");
+  if (savedToken) {
+    return <OrderPage type="masuk" />;
+  }
+
+  // kalau ga ada token sama sekali → redirect ke login
+  return <Navigate to="/LoginPage" />;
+};
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -53,7 +82,10 @@ function App() {
         <Route path="/" element={<DashboardLayout />}>
           <Route path="DashboardPage" element={<DashboardPage />} />
           <Route path="MenuPage" element={<MenuPage />} />
-          <Route path="OrderPage" element={<OrderPage type="masuk" />} />
+
+          {/* 🔹 OrderPage khusus auto-login */}
+          <Route path="OrderPage" element={<OrderPageWrapper />} />
+
           <Route
             path="OrderHistoryPage"
             element={<OrderHistoryPage type="riwayat" />}
