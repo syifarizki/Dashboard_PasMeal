@@ -48,10 +48,5 @@ export const Pesanan = {
     return res.data;
   },
 
-  verifyKiosToken: async (kiosId, token) => {
-    const res = await axios.get(`${API_URL}/api/kios/verify-token`, {
-      params: { kiosId, token },
-    });
-    return res.data.pesanan || [];
-  },
+
 };

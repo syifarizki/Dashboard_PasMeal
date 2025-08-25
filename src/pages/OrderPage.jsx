@@ -50,60 +50,64 @@ const OrderPage = ({ type = "masuk" }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchOrders = useCallback(
-    async (page = 1) => {
-      setIsLoading(true);
-      setError("");
-      const kiosIdFromUrl = searchParams.get("kiosId");
-      const tokenFromUrl = searchParams.get("token");
-      try {
-        let response;
-        const token = localStorage.getItem("token");
+ const fetchOrders = useCallback(
+   async (page = 1) => {
+     setIsLoading(true);
+     setError("");
 
-        if (!token && !tokenFromUrl) {
-          navigate("/LoginPage");
-          return;
-        }
+     try {
+       let response;
+       let token = localStorage.getItem("token");
 
-        if (kiosIdFromUrl && tokenFromUrl) {
-          response = await Pesanan.verifyKiosToken(kiosIdFromUrl, tokenFromUrl);
-        } else {
-          if (type === "masuk") {
-            response = await Pesanan.getPesananMasuk(token, page);
-          } else {
-            response = await Pesanan.getRiwayatPesanan(token, page);
-          }
-        }
+       // Ambil token dari URL kalau ada
+       const tokenFromUrl = searchParams.get("token");
+       if (tokenFromUrl) {
+         token = tokenFromUrl;
+         localStorage.setItem("token", tokenFromUrl); // auto login
+       }
 
-        const data = kiosIdFromUrl ? response : response.data;
-        const pages = kiosIdFromUrl ? 1 : response.totalPages;
+       if (!token) {
+         navigate("/LoginPage");
+         return;
+       }
 
-        const formattedData = (Array.isArray(data) ? data : []).map(
-          (order, index) => ({
-            ...order,
-            id: order.id,
-            nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
-            nama: order.nama || order.nama_pemesan || "Tidak diketahui",
-            no_hp: order.no_hp || "-",
-            created_at: order.created_at || new Date().toISOString(),
-            tanggal_bayar: order.tanggal_bayar || null,
-            total_harga: Number(order.total_harga) || 0,
-            metode_bayar: order.metode_bayar || "QRIS",
-            tipe_pengantaran: order.tipe_pengantaran || "-",
-            status: order.status_label || order.status || "Pending",
-          })
-        );
-        setOrderList(formattedData);
-        setTotalPages(pages);
-      } catch (err) {
-        console.error("Gagal ambil pesanan:", err);
-        setError(err.response?.data?.message || "Gagal memuat data pesanan.");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [searchParams, navigate, type]
-  );
+       // Ambil pesanan sesuai type
+       if (type === "masuk") {
+         response = await Pesanan.getPesananMasuk(token, page);
+       } else {
+         response = await Pesanan.getRiwayatPesanan(token, page);
+       }
+
+       const data = response.data;
+       const pages = response.totalPages;
+
+       const formattedData = (Array.isArray(data) ? data : []).map(
+         (order, index) => ({
+           ...order,
+           id: order.id,
+           nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
+           nama: order.nama || order.nama_pemesan || "Tidak diketahui",
+           no_hp: order.no_hp || "-",
+           created_at: order.created_at || new Date().toISOString(),
+           tanggal_bayar: order.tanggal_bayar || null,
+           total_harga: Number(order.total_harga) || 0,
+           metode_bayar: order.metode_bayar || "QRIS",
+           tipe_pengantaran: order.tipe_pengantaran || "-",
+           status: order.status_label || order.status || "Pending",
+         })
+       );
+
+       setOrderList(formattedData);
+       setTotalPages(pages);
+     } catch (err) {
+       console.error("Gagal ambil pesanan:", err);
+       setError(err.response?.data?.message || "Gagal memuat data pesanan.");
+     } finally {
+       setIsLoading(false);
+     }
+   },
+   [searchParams, navigate, type]
+ );
 
   useEffect(() => {
     fetchOrders(currentPage);
