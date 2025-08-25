@@ -9,6 +9,7 @@ import { Pesanan } from "../services/Pesanan";
 const LoadingSpinner = () => (
   <div className="text-center p-15">Memuat pesanan...</div>
 );
+
 const ErrorMessage = ({ message }) => (
   <div className="text-center text-red-500 p-15">{message}</div>
 );
@@ -27,17 +28,17 @@ const getStatusStyles = (status) => {
   const statusLower = status?.toLowerCase() || "";
   switch (statusLower) {
     case "pesanan diproses":
-      return " text-[#42A444]";
+      return "text-[#42A444]";
     case "siap diambil":
     case "pesanan diantar":
-      return " text-[#42A444]";
+      return "text-[#42A444]";
     case "menunggu diproses":
-      return " text-[#005B96]";
+      return "text-[#005B96]";
     case "selesai":
     case "pesanan selesai":
-      return " text-[#005B96]";
+      return "text-[#005B96]";
     default:
-      return " text-[#005B96]";
+      return "text-[#005B96]";
   }
 };
 
@@ -78,7 +79,6 @@ const OrderPage = ({ type = "masuk" }) => {
           response = await Pesanan.getRiwayatPesanan(token, page);
         }
 
-        // backend bisa balikin { data, totalPages }
         const data = response?.data || [];
         const pages = response?.totalPages || 1;
 

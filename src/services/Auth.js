@@ -48,10 +48,10 @@ export const AuthApi = {
     return res.data;
   },
 
-  autoLogin: async ({ kiosId, token }) => {
+  autoLogin: async ({ token }) => {
     const res = await axios.post(
       `${API_URL}/api/auto-login`,
-      { kiosId }, 
+      { }, 
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -3,8 +3,8 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 
 // Layout
@@ -31,32 +31,31 @@ import AddMenuPage from "./pages/AddMenuPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ProfilePage from "./pages/AuthPage/ProfilePage";
 
-// 🔹 Wrapper untuk OrderPage auto-login
-const OrderPageWrapper = () => {
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-
-  // ambil token dari URL
-  const tokenFromUrl = params.get("token");
-
-  if (tokenFromUrl) {
-    localStorage.setItem("order_token", tokenFromUrl);
-    return <OrderPage type="masuk" />;
-  }
-
-  // kalau ga ada di URL, coba ambil dari localStorage
-  const savedToken = localStorage.getItem("order_token");
-  if (savedToken) {
-    return <OrderPage type="masuk" />;
-  }
-
-  // kalau ga ada token sama sekali → redirect ke login
-  return <Navigate to="/LoginPage" />;
-};
+function AppWrapper() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  // cek token dari URL (auto login)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tokenFromUrl = params.get("token");
+
+    if (tokenFromUrl) {
+      localStorage.setItem("token", tokenFromUrl);
+      navigate("/OrderPage", { replace: true });
+    }
+  }, [location, navigate]);
+
+  // loading splash
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
@@ -65,42 +64,34 @@ function App() {
   if (loading) return <Splash />;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Auth Routes */}
-        <Route path="/" element={<AuthLayout />}>
-          <Route index element={<MainPage />} />
-          <Route path="LoginPage" element={<LoginPage />} />
-          <Route path="RegisterPage" element={<RegisterPage />} />
-          <Route path="OtpPage" element={<OtpPage />} />
-          <Route path="RegisterTokoPage" element={<RegisterTokoPage />} />
-          <Route path="ForgotPassPage" element={<ForgotPassPage />} />
-          <Route path="NewPassPage" element={<NewPassPage />} />
-        </Route>
+    <Routes>
+      {/* Auth Routes */}
+      <Route path="/" element={<AuthLayout />}>
+        <Route index element={<MainPage />} />
+        <Route path="LoginPage" element={<LoginPage />} />
+        <Route path="RegisterPage" element={<RegisterPage />} />
+        <Route path="OtpPage" element={<OtpPage />} />
+        <Route path="RegisterTokoPage" element={<RegisterTokoPage />} />
+        <Route path="ForgotPassPage" element={<ForgotPassPage />} />
+        <Route path="NewPassPage" element={<NewPassPage />} />
+      </Route>
 
-        {/* Dashboard Routes */}
-        <Route path="/" element={<DashboardLayout />}>
-          <Route path="DashboardPage" element={<DashboardPage />} />
-          <Route path="MenuPage" element={<MenuPage />} />
-
-          {/* 🔹 OrderPage khusus auto-login */}
-          <Route path="OrderPage" element={<OrderPageWrapper />} />
-
-          <Route
-            path="OrderHistoryPage"
-            element={<OrderHistoryPage type="riwayat" />}
-          />
-          <Route path="MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
-          <Route path="AddMenuPage" element={<AddMenuPage />} />
-          <Route
-            path="OrderDetailPage/:type/:id"
-            element={<OrderDetailPage />}
-          />
-          <Route path="ProfilePage" element={<ProfilePage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+      {/* Dashboard Routes */}
+      <Route path="/" element={<DashboardLayout />}>
+        <Route path="DashboardPage" element={<DashboardPage />} />
+        <Route path="MenuPage" element={<MenuPage />} />
+        <Route path="OrderPage" element={<OrderPage type="masuk" />} />
+        <Route
+          path="OrderHistoryPage"
+          element={<OrderHistoryPage type="riwayat" />}
+        />
+        <Route path="MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
+        <Route path="AddMenuPage" element={<AddMenuPage />} />
+        <Route path="OrderDetailPage/:type/:id" element={<OrderDetailPage />} />
+        <Route path="ProfilePage" element={<ProfilePage />} />
+      </Route>
+    </Routes>
   );
 }
 
-export default App;
+export default AppWrapper;
