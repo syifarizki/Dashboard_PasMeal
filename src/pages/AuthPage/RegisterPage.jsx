@@ -10,7 +10,6 @@ import InputEmail from "../../components/Input/InputEmail";
 import { AuthApi } from "../../services/Auth";
 
 const RegisterPage = () => {
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [nama, setNama] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -39,9 +38,6 @@ const RegisterPage = () => {
       newErrors.confirmPassword = "Konfirmasi kata sandi wajib diisi.";
     else if (password !== confirmPassword)
       newErrors.confirmPassword = "Konfirmasi tidak sama dengan kata sandi.";
-
-    if (!agreeToTerms)
-      newErrors.terms = "Anda harus menyetujui syarat dan kebijakan.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -154,37 +150,18 @@ const RegisterPage = () => {
               placeholder="Konfirmasi Kata Sandi"
               errorMessage={errors.confirmPassword}
             />
-            <div className="mb-2">
-              <input
-                type="checkbox"
-                id="agreeToTerms"
-                checked={agreeToTerms}
-                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                className="mr-2 cursor-pointer"
-              />
-              <label htmlFor="agreeToTerms" className="text-gray-700 text-sm ">
-                Saya menyetujui semua{" "}
-                <span className="text-primary font-semibold">
-                  Syarat dan Kebijakan Privasi
-                </span>
-              </label>
-              {errors.terms && (
-                <p className="text-red-500 text-xs mt-1">{errors.terms}</p>
-              )}
-            </div>
 
             <PrimaryButton
               type="submit"
               text={loading ? "Memproses..." : "Lanjut"}
-              className="w-full"
+              className="w-full mt-2"
               disabled={
                 loading ||
                 !nama ||
                 !phone ||
                 !email ||
                 !password ||
-                !confirmPassword ||
-                !agreeToTerms
+                !confirmPassword
               }
             />
           </form>
