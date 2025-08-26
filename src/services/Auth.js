@@ -48,19 +48,6 @@ export const AuthApi = {
     return res.data;
   },
 
-  autoLogin: async ({ token }) => {
-    const res = await axios.post(
-      `${API_URL}/api/auto-login`,
-      { }, 
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return res.data;
-  },
-
   forgotPassword: async (no_hp) => {
     const res = await axios.post(`${API_URL}/api/forgot-password`, { no_hp });
     return res.data;

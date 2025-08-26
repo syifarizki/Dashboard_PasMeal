@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // useSearchParams dihapus karena tidak lagi digunakan
 import { IoMdEye } from "react-icons/io";
 import OrderCard from "../components/Order/OrderCard";
 import Table from "../components/Table";
@@ -9,7 +9,6 @@ import { Pesanan } from "../services/Pesanan";
 const LoadingSpinner = () => (
   <div className="text-center p-15">Memuat pesanan...</div>
 );
-
 const ErrorMessage = ({ message }) => (
   <div className="text-center text-red-500 p-15">{message}</div>
 );
@@ -23,28 +22,27 @@ const columns = [
   "Detail",
 ];
 
-// warna status pesanan
+// untuk warna status pesanan
 const getStatusStyles = (status) => {
   const statusLower = status?.toLowerCase() || "";
   switch (statusLower) {
     case "pesanan diproses":
-      return "text-[#42A444]";
+      return " text-[#42A444]";
     case "siap diambil":
     case "pesanan diantar":
-      return "text-[#42A444]";
+      return " text-[#42A444]";
     case "menunggu diproses":
-      return "text-[#005B96]";
+      return " text-[#005B96]";
     case "selesai":
     case "pesanan selesai":
-      return "text-[#005B96]";
+      return " text-[#005B96]";
     default:
-      return "text-[#005B96]";
+      return " text-[#005B96]";
   }
 };
 
 const OrderPage = ({ type = "masuk" }) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [orderList, setOrderList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,54 +53,39 @@ const OrderPage = ({ type = "masuk" }) => {
     async (page = 1) => {
       setIsLoading(true);
       setError("");
-
       try {
-        let token = localStorage.getItem("token");
-
-        // cek kalau ada token di URL (auto login via link)
-        const tokenFromUrl = searchParams.get("token");
-        if (tokenFromUrl) {
-          token = tokenFromUrl;
-          localStorage.setItem("token", tokenFromUrl);
-        }
+        const token = localStorage.getItem("token");
 
         if (!token) {
           navigate("/LoginPage");
           return;
         }
 
-        // Ambil pesanan sesuai type
         let response;
-       if (type === "masuk") {
-         if (searchParams.get("token")) {
-           //  kalau token dari URL → pakai endpoint WA
-           response = await Pesanan.getPesananMasukWA(token, page);
-         } else {
-           // login biasa
-           response = await Pesanan.getPesananMasuk(token, page);
-         }
-       } else {
-         response = await Pesanan.getRiwayatPesanan(token, page);
-       }
+        if (type === "masuk") {
+          response = await Pesanan.getPesananMasuk(token, page);
+        } else {
+          response = await Pesanan.getRiwayatPesanan(token, page);
+        }
 
+        const data = response.data; 
+        const pages = response.totalPages; 
 
-        const data = response?.data || [];
-        const pages = response?.totalPages || 1;
-
-        const formattedData = data.map((order, index) => ({
-          ...order,
-          id: order.id,
-          nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
-          nama: order.nama || order.nama_pemesan || "Tidak diketahui",
-          no_hp: order.no_hp || "-",
-          created_at: order.created_at || new Date().toISOString(),
-          tanggal_bayar: order.tanggal_bayar || null,
-          total_harga: Number(order.total_harga) || 0,
-          metode_bayar: order.metode_bayar || "QRIS",
-          tipe_pengantaran: order.tipe_pengantaran || "-",
-          status: order.status_label || order.status || "Pending",
-        }));
-
+        const formattedData = (Array.isArray(data) ? data : []).map(
+          (order, index) => ({
+            ...order,
+            id: order.id,
+            nomor: order.nomor_antrian || (page - 1) * 8 + index + 1,
+            nama: order.nama || order.nama_pemesan || "Tidak diketahui",
+            no_hp: order.no_hp || "-",
+            created_at: order.created_at || new Date().toISOString(),
+            tanggal_bayar: order.tanggal_bayar || null,
+            total_harga: Number(order.total_harga) || 0,
+            metode_bayar: order.metode_bayar || "QRIS",
+            tipe_pengantaran: order.tipe_pengantaran || "-",
+            status: order.status_label || order.status || "Pending",
+          })
+        );
         setOrderList(formattedData);
         setTotalPages(pages);
       } catch (err) {
@@ -112,7 +95,7 @@ const OrderPage = ({ type = "masuk" }) => {
         setIsLoading(false);
       }
     },
-    [searchParams, navigate, type]
+    [navigate, type] 
   );
 
   useEffect(() => {
@@ -206,7 +189,7 @@ const OrderPage = ({ type = "masuk" }) => {
           <div className="flex justify-center mt-4">
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages}
+              totalPages={totalPages || 1} 
               onPageChange={setCurrentPage}
             />
           </div>

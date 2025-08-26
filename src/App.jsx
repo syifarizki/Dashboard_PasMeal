@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Layout
 import DashboardLayout from "./pages/Layouts/AppLayout";
@@ -31,31 +25,9 @@ import AddMenuPage from "./pages/AddMenuPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ProfilePage from "./pages/AuthPage/ProfilePage";
 
-function AppWrapper() {
-  return (
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  );
-}
-
 function App() {
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  // cek token dari URL (auto login)
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tokenFromUrl = params.get("token");
-
-    if (tokenFromUrl) {
-      localStorage.setItem("token", tokenFromUrl);
-      navigate("/OrderPage", { replace: true });
-    }
-  }, [location, navigate]);
-
-  // loading splash
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
@@ -64,34 +36,39 @@ function App() {
   if (loading) return <Splash />;
 
   return (
-    <Routes>
-      {/* Auth Routes */}
-      <Route path="/" element={<AuthLayout />}>
-        <Route index element={<MainPage />} />
-        <Route path="LoginPage" element={<LoginPage />} />
-        <Route path="RegisterPage" element={<RegisterPage />} />
-        <Route path="OtpPage" element={<OtpPage />} />
-        <Route path="RegisterTokoPage" element={<RegisterTokoPage />} />
-        <Route path="ForgotPassPage" element={<ForgotPassPage />} />
-        <Route path="NewPassPage" element={<NewPassPage />} />
-      </Route>
+    <BrowserRouter>
+      <Routes>
+        {/* Auth Routes */}
+        <Route path="/" element={<AuthLayout />}>
+          <Route index element={<MainPage />} />
+          <Route path="LoginPage" element={<LoginPage />} />
+          <Route path="RegisterPage" element={<RegisterPage />} />
+          <Route path="OtpPage" element={<OtpPage />} />
+          <Route path="RegisterTokoPage" element={<RegisterTokoPage />} />
+          <Route path="ForgotPassPage" element={<ForgotPassPage />} />
+          <Route path="NewPassPage" element={<NewPassPage />} />
+        </Route>
 
-      {/* Dashboard Routes */}
-      <Route path="/" element={<DashboardLayout />}>
-        <Route path="DashboardPage" element={<DashboardPage />} />
-        <Route path="MenuPage" element={<MenuPage />} />
-        <Route path="OrderPage" element={<OrderPage type="masuk" />} />
-        <Route
-          path="OrderHistoryPage"
-          element={<OrderHistoryPage type="riwayat" />}
-        />
-        <Route path="MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
-        <Route path="AddMenuPage" element={<AddMenuPage />} />
-        <Route path="OrderDetailPage/:type/:id" element={<OrderDetailPage />} />
-        <Route path="ProfilePage" element={<ProfilePage />} />
-      </Route>
-    </Routes>
+        {/* Dashboard Routes */}
+        <Route path="/" element={<DashboardLayout />}>
+          <Route path="DashboardPage" element={<DashboardPage />} />
+          <Route path="MenuPage" element={<MenuPage />} />
+          <Route path="OrderPage" element={<OrderPage type="masuk" />} />
+          <Route
+            path="OrderHistoryPage"
+            element={<OrderHistoryPage type="riwayat" />}
+          />
+          <Route path="MenuPage/EditMenuPage/:id" element={<EditMenuPage />} />
+          <Route path="AddMenuPage" element={<AddMenuPage />} />
+          <Route
+            path="OrderDetailPage/:type/:id"
+            element={<OrderDetailPage />}
+          />
+          <Route path="ProfilePage" element={<ProfilePage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
-export default AppWrapper;
+export default App;
