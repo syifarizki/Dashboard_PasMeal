@@ -44,20 +44,28 @@ const MenuPage = () => {
     loadMenus();
   }, [loadMenus]);
 
-  // Hapus newMenu dari navigasi state
+  // Ambil success message dari navigasi (contoh: setelah tambah menu)
   useEffect(() => {
-    if (location.state?.newMenu) {
+    if (location.state?.success) {
+      showSuccess(location.state.success);
+
+      // Hapus state dari history biar gak muncul lagi kalau refresh
       window.history.replaceState({}, document.title);
     }
-  }, [location.state?.newMenu]);
+  }, [location.state]);
+
+  // Fungsi helper tampilkan notif sukses
+  const showSuccess = (msg) => {
+    setSuccessMessage(msg);
+    setTimeout(() => setSuccessMessage(""), 3000);
+  };
 
   // Hapus menu
   const handleDelete = (id) => {
     setMenus((prev) => prev.filter((menu) => menu.id !== id));
     setTotalItems((prev) => prev - 1);
     setSelectedMenu(null);
-    setSuccessMessage("Berhasil menghapus menu");
-    setTimeout(() => setSuccessMessage(""), 3000);
+    showSuccess("Berhasil menghapus menu");
   };
 
   // Toggle status stok menu (OPTIMISTIC UPDATE)
@@ -76,9 +84,7 @@ const MenuPage = () => {
       const payload = { status_tersedia: newStockStatus };
       await Menu.updateMenu(id, payload, token);
 
-      // (Opsional) Tampilkan pesan sukses jika API berhasil
-      setSuccessMessage("Berhasil mengubah status menu");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      showSuccess("Berhasil mengubah status menu");
     } catch (err) {
       console.error("Gagal memperbarui status menu:", err);
 
@@ -88,7 +94,6 @@ const MenuPage = () => {
           menu.id === id ? { ...menu, status_tersedia: currentStock } : menu
         )
       );
-      // Anda bisa menambahkan notifikasi error di sini
     }
   };
 
@@ -141,6 +146,7 @@ const MenuPage = () => {
 
   return (
     <div className="flex flex-col mt-20 items-center min-h-[60vh] w-full px-4">
+      {/* Notifikasi Sukses */}
       {successMessage && (
         <div className="fixed bottom-[6.5rem] z-30 bg-green-600 text-white px-4 py-2 rounded-lg">
           {successMessage}
